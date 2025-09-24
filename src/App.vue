@@ -76,4 +76,23 @@ body.theme-light {
 * {
   transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
+
+/* CSS global para garantir visibilidade do menu hambúrguer */
+.hamburger-menu {
+  z-index: 10000 !important;
+  position: fixed !important;
+  top: 20px !important;
+  left: 20px !important;
+}
+
+/* Garantir que headers das páginas não sobreponham o menu */
+.inventory-header,
+.ai-header,
+.reports-header,
+.suppliers-header,
+.menu-header,
+.profile-header,
+.settings-header {
+  z-index: 100 !important;
+}
 </style>

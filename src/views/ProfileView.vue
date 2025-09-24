@@ -6,7 +6,8 @@
         <div class="header-info">
           <div class="avatar-section">
             <div class="avatar">
-              <User :size="32" />
+              <img v-if="user?.avatar_url" :src="user.avatar_url" :alt="user.name" />
+              <User v-else :size="32" />
             </div>
             <div class="upload-overlay" @click="triggerFileUpload">
               <Camera :size="16" />
@@ -24,7 +25,7 @@
             <p>{{ getUserRole() }}</p>
             <div class="last-activity">
               <Clock :size="14" />
-              Última atividade: {{ formatDate(new Date()) }}
+              Última atividade: {{ profileStats.lastLogin ? formatDate(new Date(profileStats.lastLogin)) : 'Nunca' }}
             </div>
           </div>
         </div>
@@ -311,8 +312,8 @@
             Conta Criada
           </h3>
           <div class="account-info">
-            <p>{{ formatDate(new Date()) }}</p>
-            <small>{{ formatTimeAgo(new Date()) }}</small>
+            <p>{{ user?.created_at ? formatDate(new Date(user.created_at)) : formatDate(new Date()) }}</p>
+            <small>{{ user?.created_at ? formatTimeAgo(new Date(user.created_at)) : 'Recente' }}</small>
           </div>
         </div>
 
@@ -343,40 +344,45 @@
     </div>
 
     <!-- Loading Overlay -->
-    <div v-if="isLoading" class="loading-overlay">
+    <div v-if="isLoading || isLoadingProfile" class="loading-overlay">
       <div class="loading-spinner">
         <Loader2 :size="32" class="animate-spin" />
-        <p>Salvando alterações...</p>
+        <p>{{ isLoadingProfile ? 'Carregando perfil...' : 'Salvando alterações...' }}</p>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import {
   User, UserCheck, Mail, Lock, Shield, Settings, Activity, Calendar,
   Save, RotateCcw, Camera, Clock, AtSign, Eye, EyeOff,
   CheckCircle, AlertCircle, Loader2
 } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
+import { useThemeStore } from '@/stores/theme'
+import { profileService, type UserProfile, type UserStats, type SecurityStatus } from '@/services/profileService'
 import { format, formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
 const authStore = useAuthStore()
+const themeStore = useThemeStore()
 const { user } = authStore
 
 // Estados reativos
 const isLoading = ref(false)
+const isLoadingProfile = ref(true)
 const hasChanges = ref(false)
 const fileInput = ref<HTMLInputElement>()
+const saveMessage = ref('')
 
-// Dados do formulário
+// Dados do formulário (inicializados vazios, serão carregados)
 const formData = ref({
-  name: user?.name || '',
-  username: user?.username || '',
-  email: user?.email || '',
-  role: user?.role || 'admin',
+  name: '',
+  username: '',
+  email: '',
+  role: 'admin',
   preferences: {
     emailNotifications: true,
     pushNotifications: true,
@@ -399,19 +405,24 @@ const showPasswords = ref({
   confirm: false
 })
 
-// Estatísticas do perfil
-const profileStats = ref({
-  loginCount: 147,
-  daysActive: 89,
-  actionsCount: 1243
+// Estatísticas do perfil (dados reais do banco)
+const profileStats = ref<UserStats>({
+  loginCount: 0,
+  daysActive: 0,
+  actionsCount: 0,
+  lastLogin: '',
+  accountAge: 0
 })
 
-// Status de segurança
-const securityStatus = ref({
-  strongPassword: true,
-  emailVerified: true,
-  recentActivity: true
+// Status de segurança (dados reais do banco)
+const securityStatus = ref<SecurityStatus>({
+  strongPassword: false,
+  emailVerified: false,
+  recentActivity: false
 })
+
+// Dados originais para comparação
+const originalFormData = ref<any>({})
 
 // Computed para força da senha
 const passwordStrength = computed(() => {
@@ -457,18 +468,7 @@ function markAsChanged() {
 }
 
 function resetChanges() {
-  formData.value = {
-    name: user?.name || '',
-    username: user?.username || '',
-    email: user?.email || '',
-    role: user?.role || 'admin',
-    preferences: {
-      emailNotifications: true,
-      pushNotifications: true,
-      darkMode: false,
-      language: 'pt-BR'
-    }
-  }
+  formData.value = JSON.parse(JSON.stringify(originalFormData.value))
   hasChanges.value = false
 }
 
@@ -477,19 +477,23 @@ async function saveProfile() {
 
   isLoading.value = true
   try {
-    // Simular salvamento
-    await new Promise(resolve => setTimeout(resolve, 2000))
+    await profileService.updateUserProfile(formData.value)
 
-    // Aqui você implementaria a chamada real para salvar no Supabase
-    console.log('Saving profile:', formData.value)
-
+    // Atualizar dados originais
+    originalFormData.value = JSON.parse(JSON.stringify(formData.value))
     hasChanges.value = false
 
-    // Mostrar notificação de sucesso
-    alert('Perfil atualizado com sucesso!')
-  } catch (error) {
+    // Aplicar tema se mudou
+    if (formData.value.preferences.darkMode !== themeStore.isDarkMode) {
+      themeStore.setTheme(formData.value.preferences.darkMode ? 'dark' : 'light')
+    }
+
+    saveMessage.value = 'Perfil atualizado com sucesso!'
+    setTimeout(() => saveMessage.value = '', 3000)
+  } catch (error: any) {
     console.error('Erro ao salvar perfil:', error)
-    alert('Erro ao salvar perfil. Tente novamente.')
+    saveMessage.value = `Erro: ${error.message}`
+    setTimeout(() => saveMessage.value = '', 5000)
   } finally {
     isLoading.value = false
   }
@@ -500,11 +504,10 @@ async function updatePassword() {
 
   isLoading.value = true
   try {
-    // Simular atualização de senha
-    await new Promise(resolve => setTimeout(resolve, 1500))
-
-    // Aqui você implementaria a chamada real para atualizar a senha
-    console.log('Updating password')
+    await profileService.updatePassword(
+      passwordData.value.currentPassword,
+      passwordData.value.newPassword
+    )
 
     // Limpar campos de senha
     passwordData.value = {
@@ -513,10 +516,12 @@ async function updatePassword() {
       confirmPassword: ''
     }
 
-    alert('Senha atualizada com sucesso!')
-  } catch (error) {
+    saveMessage.value = 'Senha atualizada com sucesso!'
+    setTimeout(() => saveMessage.value = '', 3000)
+  } catch (error: any) {
     console.error('Erro ao atualizar senha:', error)
-    alert('Erro ao atualizar senha. Tente novamente.')
+    saveMessage.value = `Erro: ${error.message}`
+    setTimeout(() => saveMessage.value = '', 5000)
   } finally {
     isLoading.value = false
   }
@@ -530,12 +535,26 @@ function triggerFileUpload() {
   fileInput.value?.click()
 }
 
-function handleAvatarUpload(event: Event) {
+async function handleAvatarUpload(event: Event) {
   const file = (event.target as HTMLInputElement).files?.[0]
-  if (file) {
-    // Aqui você implementaria o upload do avatar
-    console.log('Avatar upload:', file)
+  if (!file) return
+
+  isLoading.value = true
+  try {
+    const avatarUrl = await profileService.uploadAvatar(file)
+
+    // Atualizar dados do formulário
+    formData.value = { ...formData.value, avatar_url: avatarUrl }
     markAsChanged()
+
+    saveMessage.value = 'Avatar enviado com sucesso!'
+    setTimeout(() => saveMessage.value = '', 3000)
+  } catch (error: any) {
+    console.error('Erro no upload do avatar:', error)
+    saveMessage.value = `Erro no upload: ${error.message}`
+    setTimeout(() => saveMessage.value = '', 5000)
+  } finally {
+    isLoading.value = false
   }
 }
 
@@ -547,9 +566,69 @@ function formatTimeAgo(date: Date) {
   return formatDistanceToNow(date, { addSuffix: true, locale: ptBR })
 }
 
-onMounted(() => {
-  // Carregar dados do perfil se necessário
-  console.log('Profile view mounted')
+// Watcher para aplicar mudanças de tema em tempo real
+watch(
+  () => formData.value.preferences.darkMode,
+  (newValue) => {
+    if (newValue !== themeStore.isDarkMode) {
+      themeStore.setTheme(newValue ? 'dark' : 'light')
+    }
+  }
+)
+
+// Função para carregar dados do perfil
+async function loadProfile() {
+  try {
+    isLoadingProfile.value = true
+    const profile = await profileService.loadUserProfile()
+
+    // Preencher formulário com dados reais
+    formData.value = {
+      name: profile.name,
+      username: profile.username,
+      email: profile.email,
+      role: profile.role,
+      preferences: profile.preferences
+    }
+
+    // Salvar dados originais
+    originalFormData.value = JSON.parse(JSON.stringify(formData.value))
+
+    console.log('✅ Perfil carregado:', profile)
+  } catch (error: any) {
+    console.error('❌ Erro ao carregar perfil:', error)
+    saveMessage.value = `Erro ao carregar perfil: ${error.message}`
+  } finally {
+    isLoadingProfile.value = false
+  }
+}
+
+// Função para carregar estatísticas reais
+async function loadUserStats() {
+  try {
+    const stats = await profileService.getUserStats()
+    profileStats.value = stats
+    console.log('✅ Estatísticas carregadas:', stats)
+  } catch (error: any) {
+    console.error('❌ Erro ao carregar estatísticas:', error)
+  }
+}
+
+// Função para carregar status de segurança real
+async function loadSecurityStatus() {
+  try {
+    const status = await profileService.getSecurityStatus()
+    securityStatus.value = status
+    console.log('✅ Status de segurança carregado:', status)
+  } catch (error: any) {
+    console.error('❌ Erro ao carregar status de segurança:', error)
+  }
+}
+
+onMounted(async () => {
+  await loadProfile()
+  await loadUserStats()
+  await loadSecurityStatus()
 })
 </script>
 
@@ -600,6 +679,13 @@ onMounted(() => {
   font-weight: bold;
   position: relative;
   overflow: hidden;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
 }
 
 .upload-overlay {

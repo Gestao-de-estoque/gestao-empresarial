@@ -174,7 +174,7 @@
                   <polyline points="10,17 15,12 10,7"></polyline>
                   <line x1="15" y1="12" x2="3" y2="12"></line>
                 </svg>
-                <span>Entrar no sistema</span>
+<span class="button-text">Entrar no sistema</span>
               </span>
               <span v-else class="loading-content">
                 <div class="loading-spinner"></div>
@@ -382,13 +382,13 @@ onMounted(() => {
   --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
   --accent-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-  --glass-bg: rgba(255, 255, 255, 0.1);
-  --glass-border: rgba(255, 255, 255, 0.2);
-  --shadow-soft: 0 8px 32px rgba(31, 38, 135, 0.37);
-  --shadow-strong: 0 15px 35px rgba(31, 38, 135, 0.2);
-  --text-primary: #2d3748;
-  --text-secondary: #4a5568;
-  --border-color: #e2e8f0;
+  --glass-bg: rgba(255, 255, 255, 0.15);
+  --glass-border: rgba(255, 255, 255, 0.25);
+  --shadow-soft: 0 8px 32px rgba(31, 38, 135, 0.4);
+  --shadow-strong: 0 15px 35px rgba(31, 38, 135, 0.3);
+  --text-primary: #1a202c;
+  --text-secondary: #2d3748;
+  --border-color: #cbd5e0;
   --bg-light: #f7fafc;
   --success-color: #48bb78;
   --error-color: #f56565;
@@ -417,7 +417,7 @@ onMounted(() => {
   left: 0;
   width: 100%;
   height: 100%;
-  background: var(--primary-gradient);
+  background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 25%, #3b82f6 50%, #667eea 75%, #764ba2 100%);
   overflow: hidden;
 }
 
@@ -783,9 +783,10 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-left: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(25px);
+  border-left: 2px solid rgba(255, 255, 255, 0.3);
+  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.1);
   opacity: 0;
   transform: translateX(50px);
 }
@@ -806,8 +807,8 @@ onMounted(() => {
   background: white;
   border-radius: 24px;
   padding: 40px;
-  box-shadow: var(--shadow-soft);
-  border: 1px solid var(--border-color);
+  box-shadow: 0 10px 40px rgba(31, 38, 135, 0.15);
+  border: 2px solid rgba(203, 213, 224, 0.5);
   margin-bottom: 20px;
 }
 
@@ -820,13 +821,15 @@ onMounted(() => {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: var(--bg-light);
-  color: var(--text-secondary);
-  padding: 8px 16px;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  color: #1e40af;
+  padding: 10px 18px;
   border-radius: 20px;
   font-size: 14px;
+  font-weight: 600;
   margin-bottom: 20px;
-  border: 1px solid var(--border-color);
+  border: 2px solid rgba(30, 64, 175, 0.1);
+  box-shadow: 0 2px 8px rgba(30, 64, 175, 0.1);
 }
 
 .badge-icon {
@@ -836,14 +839,16 @@ onMounted(() => {
 .login-title {
   font-size: 28px;
   font-weight: 700;
-  color: var(--text-primary);
+  color: #1a202c;
   margin-bottom: 8px;
+  text-shadow: none;
 }
 
 .login-subtitle {
-  color: var(--text-secondary);
+  color: #4a5568;
   font-size: 16px;
   line-height: 1.5;
+  font-weight: 500;
 }
 
 /* Formulário */
@@ -877,18 +882,20 @@ onMounted(() => {
   width: 100%;
   height: 56px;
   padding: 16px 16px 16px 48px;
-  border: 2px solid var(--border-color);
+  border: 2px solid #e2e8f0;
   border-radius: 12px;
   font-size: 16px;
   background: white;
-  color: var(--text-primary);
+  color: #1a202c;
   transition: all 0.3s ease;
   outline: none;
+  font-weight: 500;
 }
 
 .form-input:focus {
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+  background: #fafbff;
 }
 
 .form-input:focus + .form-label,
@@ -896,9 +903,10 @@ onMounted(() => {
   top: -8px;
   left: 12px;
   font-size: 12px;
-  color: #667eea;
+  color: #3b82f6;
   background: white;
   padding: 0 4px;
+  font-weight: 600;
 }
 
 .form-label {
@@ -936,8 +944,9 @@ onMounted(() => {
   bottom: 0;
   left: 0;
   width: 0;
-  height: 2px;
-  background: var(--primary-gradient);
+  height: 3px;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  border-radius: 2px;
   transition: width 0.3s ease;
 }
 
@@ -994,8 +1003,9 @@ onMounted(() => {
 .forgot-password {
   background: none;
   border: none;
-  color: #667eea;
+  color: #3b82f6;
   font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
   text-decoration: underline;
   transition: color 0.3s ease;
@@ -1062,12 +1072,12 @@ onMounted(() => {
 /* Botões */
 .login-button {
   height: 56px;
-  background: var(--primary-gradient);
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #667eea 100%);
   color: white;
   border: none;
   border-radius: 12px;
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
@@ -1076,6 +1086,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   gap: 8px;
+  box-shadow: 0 4px 15px rgba(30, 64, 175, 0.3);
 }
 
 .login-button:before {
@@ -1095,7 +1106,8 @@ onMounted(() => {
 
 .login-button:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 8px 25px rgba(30, 64, 175, 0.4);
+  background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #3b82f6 100%);
 }
 
 .login-button:disabled {
@@ -1107,6 +1119,13 @@ onMounted(() => {
 .button-icon {
   width: 20px;
   height: 20px;
+}
+
+.button-text {
+  color: white !important;
+  font-weight: 700 !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+  font-size: 16px !important;
 }
 
 .loading-content {
@@ -1172,10 +1191,11 @@ onMounted(() => {
 }
 
 .demo-button:hover:not(:disabled) {
-  background: #667eea;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
   color: white;
-  border-color: #667eea;
+  border-color: #3b82f6;
   transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .demo-icon {
