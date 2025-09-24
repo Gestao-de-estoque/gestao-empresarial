@@ -13,7 +13,9 @@ import HamburgerMenu from '@/components/HamburgerMenu.vue'
 const route = useRoute()
 
 const shouldShowMenu = computed((): boolean => {
-  return Boolean(route.meta?.requiresAuth)
+  // Mostrar o menu em todas as rotas exceto login
+  const hideOnRoutes = ['/login', '/register', '/']
+  return !hideOnRoutes.includes(route.path)
 })
 </script>
 
