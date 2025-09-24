@@ -4,6 +4,24 @@ import type { User } from '@/types/auth'
 export class AuthService {
   private currentUser: User | null = null
 
+  constructor() {
+    // Inicializar usuário do localStorage ao criar o serviço
+    this.loadUserFromStorage()
+  }
+
+  private loadUserFromStorage() {
+    try {
+      const userSession = localStorage.getItem('userSession')
+      if (userSession) {
+        this.currentUser = JSON.parse(userSession)
+        console.log('✅ Usuário carregado do localStorage:', this.currentUser?.username)
+      }
+    } catch (error) {
+      console.error('❌ Erro ao carregar usuário do localStorage:', error)
+      localStorage.removeItem('userSession')
+    }
+  }
+
   async hashPassword(password: string): Promise<string> {
     let hash = 0
     const saltedPassword = password + 'gestaozesystem_salt_2025'
@@ -64,7 +82,15 @@ export class AuthService {
   }
 
   getCurrentUser(): User | null {
+    // Se não tiver usuário em memória, tenta recarregar do localStorage
+    if (!this.currentUser) {
+      this.loadUserFromStorage()
+    }
     return this.currentUser
+  }
+
+  isAuthenticated(): boolean {
+    return this.getCurrentUser() !== null
   }
 }
 

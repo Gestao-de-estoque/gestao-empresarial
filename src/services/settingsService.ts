@@ -1,4 +1,5 @@
 import { supabase, DB_TABLES } from '@/config/supabase'
+import { authService } from '@/services/authService'
 
 export interface AppSettings {
   general: {
@@ -64,17 +65,30 @@ export interface SettingsRow {
 }
 
 class SettingsService {
-  private async getCurrentUser() {
-    const { data: { user }, error } = await supabase.auth.getUser()
-    if (error || !user) {
-      throw new Error('Usuário não autenticado')
+  private getCurrentUser() {
+    // Primeiro tenta pegar do authService
+    const currentUser = authService.getCurrentUser()
+    if (currentUser) {
+      return currentUser
     }
-    return user
+
+    // Se não encontrar, tenta do localStorage
+    const userSession = localStorage.getItem('userSession')
+    if (userSession) {
+      try {
+        const user = JSON.parse(userSession)
+        return user
+      } catch (error) {
+        console.error('Erro ao parse do userSession:', error)
+      }
+    }
+
+    throw new Error('Usuário não autenticado. Faça login primeiro.')
   }
 
   async loadSettings(): Promise<AppSettings> {
     try {
-      const user = await this.getCurrentUser()
+      const user = this.getCurrentUser()
 
       const { data, error } = await supabase
         .from(DB_TABLES.SETTINGS)
@@ -110,7 +124,7 @@ class SettingsService {
 
   async saveSettings(settings: AppSettings): Promise<void> {
     try {
-      const user = await this.getCurrentUser()
+      const user = this.getCurrentUser()
 
       // Primeiro, remove todas as configurações existentes do usuário
       const { error: deleteError } = await supabase
@@ -151,7 +165,7 @@ class SettingsService {
 
   async saveSection(section: keyof AppSettings, sectionSettings: any): Promise<void> {
     try {
-      const user = await this.getCurrentUser()
+      const user = this.getCurrentUser()
 
       // Atualiza ou insere apenas uma seção específica
       const { error: upsertError } = await supabase
@@ -288,9 +302,9 @@ class SettingsService {
 
   async testConnection(): Promise<boolean> {
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from(DB_TABLES.SETTINGS)
-        .select('count(*)')
+        .select('*', { count: 'exact', head: true })
         .limit(1)
 
       return !error

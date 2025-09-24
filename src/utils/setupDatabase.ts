@@ -1,30 +1,50 @@
 import { supabase } from '@/config/supabase'
+import { authService } from '@/services/authService'
+
+function getCurrentUser() {
+  // Primeiro tenta pegar do authService
+  const currentUser = authService.getCurrentUser()
+  if (currentUser) {
+    return currentUser
+  }
+
+  // Se não encontrar, tenta do localStorage
+  const userSession = localStorage.getItem('userSession')
+  if (userSession) {
+    try {
+      const user = JSON.parse(userSession)
+      return user
+    } catch (error) {
+      console.error('Erro ao parse do userSession:', error)
+    }
+  }
+
+  return null
+}
 
 export async function setupSettingsTable(): Promise<{ success: boolean; message: string }> {
   try {
     console.log('🔧 Verificando e configurando tabela de configurações...')
 
-    // Testar conexão básica
-    const { data: healthCheck, error: healthError } = await supabase
-      .from('admin_users')
-      .select('count(*)')
-      .limit(1)
+    // Verificar autenticação usando o sistema customizado
+    const user = getCurrentUser()
 
-    if (healthError) {
+    if (!user) {
       return {
         success: false,
-        message: `Erro de conexão com Supabase: ${healthError.message}`
+        message: 'Usuário não autenticado. Faça login primeiro.'
       }
     }
 
-    // Verificar se a tabela app_settings existe
+    // Verificar se a tabela app_settings existe testando uma consulta simples
     const { data: tableCheck, error: tableError } = await supabase
       .from('app_settings')
-      .select('count(*)')
+      .select('id')
+      .eq('user_id', user.id)
       .limit(1)
 
     if (tableError) {
-      if (tableError.code === 'PGRST116' || tableError.message.includes('does not exist')) {
+      if (tableError.code === 'PGRST116' || tableError.message.includes('does not exist') || tableError.code === '42P01') {
         return {
           success: false,
           message: `Tabela app_settings não existe. Execute o SQL em: src/database/create-settings-table.sql no Supabase SQL Editor`
@@ -33,16 +53,6 @@ export async function setupSettingsTable(): Promise<{ success: boolean; message:
       return {
         success: false,
         message: `Erro ao verificar tabela: ${tableError.message}`
-      }
-    }
-
-    // Verificar se o usuário atual pode acessar a tabela
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
-
-    if (userError || !user) {
-      return {
-        success: false,
-        message: 'Usuário não autenticado. Faça login para acessar as configurações.'
       }
     }
 
@@ -95,12 +105,8 @@ export async function getDatabaseInfo(): Promise<{
   settingsCount: number
 }> {
   try {
-    // Informações do usuário
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
-
-    if (userError) {
-      throw new Error(`Erro ao buscar usuário: ${userError.message}`)
-    }
+    // Informações do usuário usando sistema customizado
+    const user = getCurrentUser()
 
     // Contar configurações do usuário atual
     let settingsCount = 0
@@ -116,7 +122,7 @@ export async function getDatabaseInfo(): Promise<{
     }
 
     return {
-      user: user ? { id: user.id, email: user.email } : null,
+      user: user ? { id: user.id, email: user.email, username: user.username } : null,
       tables: ['app_settings', 'admin_users', 'produtos', 'categorias'],
       settingsCount
     }

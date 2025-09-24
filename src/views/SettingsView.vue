@@ -7,7 +7,11 @@
           Configurações do App
         </h1>
         <div class="header-actions">
-          <button @click="testDatabaseConnection" class="btn-secondary" title="Testar Conexão">
+          <button @click="runDebug" class="btn-secondary" title="Debug Completo" :disabled="loading">
+            <Code :size="16" />
+            Debug
+          </button>
+          <button @click="testDatabaseConnection" class="btn-secondary" title="Testar Conexão" :disabled="loading">
             <RefreshCw :size="18" />
             Testar DB
           </button>
@@ -39,6 +43,24 @@
         <div v-if="loading" class="loading-state">
           <RefreshCw :size="24" class="loading-spinner" />
           <p>Carregando configurações...</p>
+        </div>
+
+        <!-- Estado não autenticado -->
+        <div v-else-if="!isUserAuthenticated" class="auth-required-state">
+          <div class="auth-icon">
+            <Shield :size="48" />
+          </div>
+          <h3>Autenticação Necessária</h3>
+          <p>Você precisa estar logado para acessar as configurações do sistema.</p>
+          <div class="auth-actions">
+            <button @click="checkAuth" class="btn-primary">
+              <RefreshCw :size="16" />
+              Verificar Login
+            </button>
+            <button @click="goToLogin" class="btn-secondary">
+              Fazer Login
+            </button>
+          </div>
         </div>
 
         <!-- Configurações Gerais -->
@@ -600,10 +622,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, watch } from 'vue'
+import { ref, reactive, onMounted, watch, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { useThemeStore } from '@/stores/theme'
 import { settingsService, type AppSettings } from '@/services/settingsService'
 import { databaseSetup } from '@/utils/setupDatabase'
+import { authService } from '@/services/authService'
+import { debugSettingsTable } from '@/utils/debugSettings'
 
 // Icons
 import {
@@ -624,6 +649,10 @@ const activeSection = ref('general')
 const showApiKey = ref(false)
 const saveStatus = ref<SaveStatus | null>(null)
 const themeStore = useThemeStore()
+const router = useRouter()
+
+// Computed
+const isUserAuthenticated = computed(() => authService.isAuthenticated())
 
 const settingSections = [
   { id: 'general', title: 'Geral', icon: Globe },
@@ -767,7 +796,7 @@ async function testDatabaseConnection() {
       // Buscar informações adicionais
       const dbInfo = await databaseSetup.getDatabaseInfo()
       console.log('📊 Informações do banco:', dbInfo)
-      console.log(`👤 Usuário: ${dbInfo.user?.email}`)
+      console.log(`👤 Usuário: ${dbInfo.user?.username || dbInfo.user?.email}`)
       console.log(`📋 Configurações salvas: ${dbInfo.settingsCount}`)
 
     } else {
@@ -782,6 +811,32 @@ async function testDatabaseConnection() {
   } catch (error: any) {
     console.error('❌ Erro ao testar conexão:', error)
     showSaveStatus('error', `Erro inesperado: ${error.message}`)
+  }
+}
+
+function checkAuth() {
+  const user = authService.getCurrentUser()
+  if (user) {
+    showSaveStatus('success', `Logado como: ${user.username}`)
+    loadSettings()
+  } else {
+    showSaveStatus('error', 'Nenhum usuário autenticado encontrado')
+  }
+}
+
+function goToLogin() {
+  router.push('/login')
+}
+
+async function runDebug() {
+  console.log('🔧 Executando debug completo das configurações...')
+  showSaveStatus('success', 'Debug executado - verifique o console do navegador')
+
+  try {
+    await debugSettingsTable()
+  } catch (error: any) {
+    console.error('❌ Erro no debug:', error)
+    showSaveStatus('error', `Erro no debug: ${error.message}`)
   }
 }
 
@@ -803,8 +858,25 @@ watch(() => settings.interface, () => {
 
 // Lifecycle
 onMounted(async () => {
-  await loadSettings()
-  await testDatabaseConnection()
+  loading.value = true
+
+  // Verificar autenticação primeiro
+  if (!isUserAuthenticated.value) {
+    loading.value = false
+    console.log('⚠️ Usuário não autenticado - configurações não carregadas')
+    showSaveStatus('error', 'Faça login para acessar as configurações')
+    return
+  }
+
+  try {
+    await loadSettings()
+    await testDatabaseConnection()
+  } catch (error: any) {
+    console.error('❌ Erro na inicialização:', error)
+    showSaveStatus('error', `Erro ao inicializar: ${error.message}`)
+  } finally {
+    loading.value = false
+  }
 })
 </script>
 
@@ -1338,5 +1410,49 @@ onMounted(async () => {
   background: rgba(255, 85, 85, 0.2);
   color: var(--theme-accent-error);
   border: 2px solid rgba(255, 85, 85, 0.3);
+}
+
+/* Auth Required State */
+.auth-required-state {
+  text-align: center;
+  padding: 80px 40px;
+}
+
+.auth-icon {
+  margin: 0 auto 24px;
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, var(--theme-primary), var(--theme-secondary));
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.auth-required-state h3 {
+  color: var(--theme-text-primary);
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 16px 0;
+}
+
+.auth-required-state p {
+  color: var(--theme-text-secondary);
+  font-size: 16px;
+  margin: 0 0 32px 0;
+  line-height: 1.5;
+}
+
+.auth-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  align-items: center;
+}
+
+.auth-actions .btn-primary,
+.auth-actions .btn-secondary {
+  min-width: 120px;
 }
 </style>

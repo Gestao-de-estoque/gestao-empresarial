@@ -1,4 +1,10 @@
--- Criar tabela de configurações do app
+-- Script para recriar a tabela app_settings (usar se houver problemas com RLS)
+
+-- Primeiro, remover a tabela existente (CUIDADO: isso apaga todos os dados!)
+-- Descomente a linha abaixo apenas se necessário
+-- DROP TABLE IF EXISTS app_settings;
+
+-- Recriar tabela sem RLS
 CREATE TABLE IF NOT EXISTS app_settings (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID NOT NULL,
@@ -9,18 +15,17 @@ CREATE TABLE IF NOT EXISTS app_settings (
   UNIQUE(user_id, section)
 );
 
--- Comentários para documentação
+-- Comentários
 COMMENT ON TABLE app_settings IS 'Configurações do aplicativo por usuário';
-COMMENT ON COLUMN app_settings.user_id IS 'ID do usuário (compatível com admin_users.id)';
+COMMENT ON COLUMN app_settings.user_id IS 'ID do usuário (referencia admin_users.id)';
 COMMENT ON COLUMN app_settings.section IS 'Seção das configurações (general, inventory, etc)';
 COMMENT ON COLUMN app_settings.settings IS 'Dados JSON das configurações da seção';
 
--- Índices para performance
+-- Índices
 CREATE INDEX IF NOT EXISTS idx_app_settings_user_id ON app_settings(user_id);
 CREATE INDEX IF NOT EXISTS idx_app_settings_section ON app_settings(section);
-CREATE INDEX IF NOT EXISTS idx_app_settings_user_section ON app_settings(user_id, section);
 
--- Trigger para atualizar updated_at automaticamente
+-- Trigger para updated_at
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -35,22 +40,13 @@ CREATE TRIGGER update_app_settings_updated_at
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
 
--- Desabilitar RLS para compatibilidade com sistema customizado
--- Como estamos usando autenticação customizada via admin_users table,
--- não podemos usar auth.uid() que é para autenticação nativa do Supabase
+-- Garantir que RLS está desabilitado
 ALTER TABLE app_settings DISABLE ROW LEVEL SECURITY;
 
--- Remover todas as políticas RLS anteriores
+-- Limpar qualquer política RLS existente
 DROP POLICY IF EXISTS "Users can only access their own settings" ON app_settings;
 DROP POLICY IF EXISTS "Users can insert their own settings" ON app_settings;
 DROP POLICY IF EXISTS "Users can update their own settings" ON app_settings;
 DROP POLICY IF EXISTS "Users can delete their own settings" ON app_settings;
 
--- NOTA: A segurança será implementada no nível da aplicação
--- através do controle de sessão no localStorage e validação de user_id
--- nas queries da aplicação JavaScript
-
--- Inserir configurações padrão (opcional)
--- Esta parte será executada pelo código JavaScript quando o usuário fizer login
-
-SELECT 'Tabela app_settings criada com sucesso!' as resultado;
+SELECT 'Tabela app_settings recriada sem RLS!' as resultado;
