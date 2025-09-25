@@ -1,2 +1,3 @@
 1w. Com base na estrutura do sistema web em VueJS, criar um arquivo em codigo Latex, onde sera um guia de como utilizar o sistema web, como utilizar todas as rotas, como que funciona, o que esta de baixo dos panos como o banco de dados do supabse, o vuejs, como que o sistema funciona, o que cada rota faz e como utilizar cada rota. Explicacoes bem completa e funcional, sem erros ortograficos e linguagem profissional e tecnica.
 O designe da documentacao tem que ter fundo azul bem claro.
+
