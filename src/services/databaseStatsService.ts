@@ -1,4 +1,5 @@
-import { supabase, DB_TABLES } from '@/config/supabase'
+import { supabase } from '@/config/supabase'
+// import { DB_TABLES } from '@/config/supabase'
 
 export interface DatabaseStats {
   totalSize: number // em MB

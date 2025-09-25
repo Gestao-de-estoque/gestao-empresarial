@@ -285,7 +285,7 @@
           <DocHeader
             title="🤖 Assistente IA"
             description="Integração com Google Gemini AI para análises inteligentes"
-            :badges="[{ text: 'Gemini 2.0', type: 'new' }]"
+            :badges="[{ text: 'Gemini 2.0', type: 'info' }]"
           />
 
           <DocBlock title="Capacidades do Assistente IA" variant="info" :icon="Brain">
@@ -321,7 +321,7 @@
           <DocHeader
             title="💰 Módulo Financeiro"
             description="Controle completo de receitas, despesas e fluxo de caixa"
-            :badges="[{ text: 'Novo Módulo', type: 'new' }]"
+            :badges="[{ text: 'Novo Módulo', type: 'success' }]"
           />
 
           <DocBlock title="Funcionalidades Financeiras" variant="success" :icon="DollarSign">

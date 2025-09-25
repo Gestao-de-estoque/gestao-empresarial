@@ -20,7 +20,7 @@
               <TrendingUp :size="20" />
             </div>
             <div class="stat-content">
-              <div class="stat-value">{{ formatCurrency(summary.totalRevenue) }}</div>
+              <div class="stat-value">{{ formatCurrency(summary.totalRevenue || 0) }}</div>
               <div class="stat-label">Receita Total</div>
             </div>
           </div>
@@ -29,7 +29,7 @@
               <Users :size="20" />
             </div>
             <div class="stat-content">
-              <div class="stat-value">{{ formatCurrency(summary.totalWaiterSalary) }}</div>
+              <div class="stat-value">{{ formatCurrency(summary.totalWaiterSalary || 0) }}</div>
               <div class="stat-label">Salários Garçons</div>
             </div>
           </div>
@@ -38,7 +38,7 @@
               <Target :size="20" />
             </div>
             <div class="stat-content">
-              <div class="stat-value">{{ formatCurrency(summary.averageDailyRevenue) }}</div>
+              <div class="stat-value">{{ formatCurrency(summary.averageDailyRevenue || 0) }}</div>
               <div class="stat-label">Média Diária</div>
             </div>
           </div>
@@ -339,7 +339,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, reactive } from 'vue'
 import {
-  DollarSign, TrendingUp, Users, Target, RefreshCw, Plus, Brain,
+  DollarSign, TrendingUp, TrendingDown, Users, Target, RefreshCw, Plus, Brain,
   Download, Sparkles, BarChart3, PieChart, Activity, Table,
   Search, ArrowUpDown, Edit, Trash2, X
 } from 'lucide-vue-next'

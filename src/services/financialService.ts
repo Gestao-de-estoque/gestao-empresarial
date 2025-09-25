@@ -141,7 +141,7 @@ class FinancialService {
       // Dados mensais
       const monthlyMap = new Map<string, { revenue: number; waiterSalary: number }>()
       data.forEach(record => {
-        const [day, month, year] = record.full_day.split('/')
+        const [, month, year] = record.full_day.split('/')
         const monthKey = `${month}/${year}`
 
         if (!monthlyMap.has(monthKey)) {

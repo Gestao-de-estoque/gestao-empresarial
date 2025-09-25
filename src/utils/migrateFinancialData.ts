@@ -39,7 +39,7 @@ export async function migrateFinancialData() {
 
     // Tenta importar do arquivo data.js primeiro
     try {
-      const dataModule = await import('../data/data.js')
+      const dataModule = await import('../data/data.js') as any
       rawData = dataModule.default || dataModule.data || []
     } catch (importError) {
       console.log('Não foi possível importar data.js, usando dados de exemplo')
@@ -61,7 +61,7 @@ export async function migrateFinancialData() {
 
   } catch (error) {
     console.error('Erro durante a migração:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: (error as Error).message }
   }
 }
 
@@ -98,6 +98,6 @@ export async function executeMigration() {
     return result
   } catch (error) {
     console.error('❌ Erro crítico na migração:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: (error as Error).message }
   }
 }
