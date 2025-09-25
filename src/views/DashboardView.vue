@@ -102,6 +102,17 @@
               <ArrowRight :size="16" class="action-arrow" />
             </router-link>
 
+            <router-link to="/financial" class="quick-action-card financial">
+              <div class="action-icon">
+                <DollarSign :size="24" />
+              </div>
+              <div class="action-content">
+                <h3>Análise Financeira</h3>
+                <p>Receitas, salários e insights IA</p>
+              </div>
+              <ArrowRight :size="16" class="action-arrow" />
+            </router-link>
+
             <router-link to="/ai" class="quick-action-card ai">
               <div class="action-icon">
                 <Brain :size="24" />
@@ -153,6 +164,17 @@
               <div class="action-content">
                 <h3>Sobre</h3>
                 <p>Informações do sistema</p>
+              </div>
+              <ArrowRight :size="16" class="action-arrow" />
+            </router-link>
+
+            <router-link to="/doc" class="quick-action-card documentation">
+              <div class="action-icon">
+                <FileText :size="24" />
+              </div>
+              <div class="action-content">
+                <h3>Documentação</h3>
+                <p>Docs para desenvolvedores</p>
               </div>
               <ArrowRight :size="16" class="action-arrow" />
             </router-link>
@@ -280,6 +302,11 @@
           </div>
         </section>
 
+        <!-- Estatísticas do Banco de Dados -->
+        <section class="database-panel">
+          <DatabaseStats />
+        </section>
+
         <!-- Widget de Performance -->
         <section class="performance-panel">
           <div class="panel-header">
@@ -362,13 +389,14 @@ import { Line, Doughnut } from 'vue-chartjs'
 import { formatDistanceToNow, format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import NotificationCenter from '@/components/NotificationCenter.vue'
+import DatabaseStats from '@/components/DatabaseStats.vue'
 
 // Importar ícones do Lucide
 import {
   Search, User, ChevronDown, LogOut, Zap, Package, Brain,
   BarChart3, Plus, ArrowRight, TrendingUp, TrendingDown, AlertTriangle,
   RefreshCw, CheckCircle, X, PieChart, Activity, ExternalLink,
-  Gauge, Loader2, Settings, Sliders, Users, ChefHat, Info
+  Gauge, Loader2, Settings, Sliders, Users, ChefHat, Info, DollarSign, FileText
 } from 'lucide-vue-next'
 
 // Importar configurações do Chart.js
@@ -1075,8 +1103,12 @@ onUnmounted(() => {
   grid-column: span 6;
 }
 
+.database-panel {
+  grid-column: span 8;
+}
+
 .performance-panel {
-  grid-column: span 12;
+  grid-column: span 4;
 }
 
 .panel-header {
@@ -1143,6 +1175,9 @@ onUnmounted(() => {
   background: linear-gradient(135deg, #4facfe10, #00f2fe10);
 }
 
+.quick-action-card.financial:hover {
+  background: linear-gradient(135deg, #10b98110, #06b6d410);
+}
 .quick-action-card.ai:hover {
   background: linear-gradient(135deg, #f093fb10, #f5576c10);
 }
@@ -1161,6 +1196,10 @@ onUnmounted(() => {
 
 .quick-action-card.about:hover {
   background: linear-gradient(135deg, #06b6d410, #0891b210);
+}
+
+.quick-action-card.documentation:hover {
+  background: linear-gradient(135deg, #8b5cf610, #a855f710);
 }
 
 .action-icon {

@@ -290,38 +290,119 @@ class ProfileService {
   async uploadAvatar(file: File): Promise<string> {
     try {
       const user = this.getCurrentUser()
-      const fileExt = file.name.split('.').pop()
+
+      // Buscar avatar atual para cleanup posterior
+      const { data: currentUser } = await supabase
+        .from(DB_TABLES.USERS)
+        .select('avatar_url')
+        .eq('id', user.id)
+        .single()
+
+      const oldAvatarUrl = currentUser?.avatar_url
+
+      // Gerar nome único para o arquivo
+      const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg'
       const fileName = `${user.id}_${Date.now()}.${fileExt}`
       const filePath = `avatars/${fileName}`
 
-      // Upload para Supabase Storage
-      const { error: uploadError } = await supabase.storage
+      console.log('📤 Iniciando upload do avatar:', {
+        fileName,
+        fileSize: `${(file.size / 1024 / 1024).toFixed(2)}MB`,
+        fileType: file.type
+      })
+
+      // Upload para Supabase Storage com retry
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from('user-avatars')
-        .upload(filePath, file)
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        })
 
       if (uploadError) {
+        console.error('Erro no upload:', uploadError)
+        if (uploadError.message.includes('already exists')) {
+          throw new Error('Erro interno: conflito de arquivo. Tente novamente.')
+        }
         throw new Error(`Erro no upload: ${uploadError.message}`)
       }
+
+      console.log('✅ Upload realizado com sucesso:', uploadData?.path)
 
       // Obter URL pública
       const { data: { publicUrl } } = supabase.storage
         .from('user-avatars')
         .getPublicUrl(filePath)
 
+      if (!publicUrl) {
+        throw new Error('Erro ao gerar URL pública do avatar')
+      }
+
+      console.log('🔗 URL pública gerada:', publicUrl)
+
       // Atualizar perfil com nova URL do avatar
       const { error: updateError } = await supabase
         .from(DB_TABLES.USERS)
-        .update({ avatar_url: publicUrl })
+        .update({
+          avatar_url: publicUrl,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', user.id)
 
       if (updateError) {
-        throw new Error(`Erro ao salvar avatar: ${updateError.message}`)
+        console.error('Erro ao atualizar banco:', updateError)
+        // Limpar arquivo enviado se falhar ao salvar no banco
+        await this.cleanupAvatarFile(filePath)
+        throw new Error(`Erro ao salvar avatar no perfil: ${updateError.message}`)
+      }
+
+      console.log('✅ Avatar salvo no perfil com sucesso')
+
+      // Limpar avatar antigo (se existir)
+      if (oldAvatarUrl && oldAvatarUrl !== publicUrl) {
+        await this.cleanupOldAvatar(oldAvatarUrl)
       }
 
       return publicUrl
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Erro no upload do avatar:', error)
       throw error
+    }
+  }
+
+  /**
+   * Remove arquivo de avatar antigo do storage
+   */
+  private async cleanupOldAvatar(avatarUrl: string): Promise<void> {
+    try {
+      // Extrair path do arquivo da URL
+      const urlParts = avatarUrl.split('/storage/v1/object/public/user-avatars/')
+      if (urlParts.length !== 2) return
+
+      const filePath = urlParts[1]
+      await this.cleanupAvatarFile(filePath)
+    } catch (error) {
+      console.warn('Erro ao limpar avatar antigo:', error)
+      // Não propagar erro de limpeza
+    }
+  }
+
+  /**
+   * Remove arquivo específico do storage
+   */
+  private async cleanupAvatarFile(filePath: string): Promise<void> {
+    try {
+      const { error } = await supabase.storage
+        .from('user-avatars')
+        .remove([filePath])
+
+      if (error) {
+        console.warn('Erro ao remover arquivo:', error)
+      } else {
+        console.log('🗑️ Arquivo antigo removido:', filePath)
+      }
+    } catch (error) {
+      console.warn('Erro na limpeza do arquivo:', error)
     }
   }
 

@@ -11,6 +11,8 @@ import SuppliersView from '@/views/SuppliersView.vue'
 import MenuView from '@/views/MenuView.vue'
 import SettingsView from '@/views/SettingsView.vue'
 import AboutView from '@/views/AboutView.vue'
+import FinancialView from '@/views/FinancialView.vue'
+import DocumentationView from '@/views/DocumentationView.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -83,6 +85,18 @@ const router = createRouter({
       path: '/about',
       name: 'about',
       component: AboutView,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/financial',
+      name: 'financial',
+      component: FinancialView,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/doc',
+      name: 'documentation',
+      component: DocumentationView,
       meta: { requiresAuth: true }
     }
   ]

@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { financialService } from './financialService'
 
 interface GeminiResponse {
   candidates: Array<{
@@ -331,6 +332,157 @@ Por favor, forneça uma resposta detalhada e prática, considerando o contexto d
 `
 
     return await this.makeGeminiRequest(prompt)
+  }
+
+  async analyzeFinancialData(financialData?: any): Promise<string> {
+    const data = financialData || await financialService.getFinancialAnalyticsData()
+
+    const prompt = `
+Você é um consultor financeiro especialista em análise de restaurantes, com expertise em otimização de receitas, análise de custos operacionais e estratégias de crescimento financeiro.
+
+DADOS FINANCEIROS PARA ANÁLISE:
+${JSON.stringify(data, null, 2)}
+
+ANÁLISE FINANCEIRA ESTRATÉGICA SOLICITADA:
+
+## 💰 ANÁLISE DE RECEITAS E RENTABILIDADE
+**PERFORMANCE FINANCEIRA:**
+- **Receita Total**: Análise do volume total de vendas
+- **Tendências**: Padrões de crescimento ou declínio identificados
+- **Sazonalidade**: Variações por período/mês
+- **Receita Média Diária**: Benchmark e comparação com mercado
+- **Picos e Vales**: Identificação de melhores e piores períodos
+
+## 👨‍💼 ANÁLISE DE CUSTOS OPERACIONAIS (GARÇONS)
+**GESTÃO DE PESSOAL:**
+- **Percentual Ideal**: Avaliação se 10% é competitivo
+- **Custo por Receita**: Eficiência do investimento em pessoal
+- **Produtividade**: Análise receita por garçom
+- **Comparativo**: Benchmarks da indústria
+- **Otimização**: Oportunidades de melhoria na estrutura salarial
+
+## 📈 INSIGHTS DE CRESCIMENTO
+**ESTRATÉGIAS DE EXPANSÃO:**
+- **Tendências Positivas**: Fatores que impulsionam crescimento
+- **Padrões de Sucesso**: Dias/períodos de melhor performance
+- **Oportunidades**: Potencial não explorado
+- **Crescimento Sustentável**: Projeções realistas
+- **Investimentos Recomendados**: Onde aplicar recursos para crescer
+
+## ⚠️ ANÁLISE DE RISCOS FINANCEIROS
+**IDENTIFICAÇÃO DE VULNERABILIDADES:**
+- **Volatilidade**: Instabilidade nas receitas
+- **Dependências**: Concentrações de risco
+- **Fluxo de Caixa**: Padrões de entrada e saída
+- **Reservas**: Necessidade de capital de giro
+- **Cenários**: Preparação para diferentes situações
+
+## 🎯 MÉTRICAS DE EFICIÊNCIA
+**KPIs FINANCEIROS:**
+- **Margem Operacional**: Eficiência após custos de pessoal
+- **ROI Operacional**: Retorno sobre investimento diário
+- **Consistência**: Desvio padrão e variabilidade
+- **Eficiência de Custos**: Relação custo-benefício
+- **Performance Relativa**: Comparação temporal
+
+## 🔮 PROJEÇÕES E CENÁRIOS
+**PLANEJAMENTO ESTRATÉGICO:**
+- **Projeções 30/60/90 dias**: Previsões baseadas em tendências
+- **Cenários Otimista/Realista/Pessimista**: Preparação estratégica
+- **Metas Financeiras**: Objetivos alcançáveis e desafiadores
+- **Cronograma de Crescimento**: Etapas para expansão
+- **Pontos de Controle**: Marcos para monitoramento
+
+## 💡 RECOMENDAÇÕES EXECUTIVAS
+**AÇÕES IMEDIATAS (0-30 dias):**
+- Ajustes operacionais prioritários
+- Oportunidades de receita rápida
+- Otimizações de custo imediatas
+
+**ESTRATÉGIAS MÉDIO PRAZO (30-90 dias):**
+- Investimentos em crescimento
+- Melhorias na estrutura operacional
+- Diversificação de receitas
+
+**VISÃO LONGO PRAZO (90+ dias):**
+- Expansão sustentável
+- Inovações no modelo de negócio
+- Consolidação de market share
+
+**FORMATO**: Relatório executivo com insights quantitativos específicos, recomendações práticas e cronograma de implementação detalhado.
+`
+
+    return await this.makeGeminiRequest(prompt)
+  }
+
+  async generateFinancialInsights(summaryData: any): Promise<Array<{
+    id: number
+    title: string
+    description: string
+    recommendation?: string
+    type: 'positive' | 'warning' | 'info'
+    icon: string
+  }>> {
+    try {
+      const analysis = await this.analyzeFinancialData(summaryData)
+
+      // Parse AI response and generate structured insights
+      const insights = []
+
+      if (summaryData.performanceMetrics?.growth > 0) {
+        insights.push({
+          id: 1,
+          title: 'Tendência de Crescimento Positiva',
+          description: `Suas receitas apresentam crescimento de ${summaryData.performanceMetrics.growth}% no período analisado.`,
+          recommendation: 'Continue investindo nas estratégias atuais para manter este momentum positivo.',
+          type: 'positive' as const,
+          icon: 'TrendingUp'
+        })
+      }
+
+      if (summaryData.performanceMetrics?.consistency < 70) {
+        insights.push({
+          id: 2,
+          title: 'Oportunidade de Melhoria na Consistência',
+          description: `Sua operação apresenta ${summaryData.performanceMetrics.consistency}% de consistência, indicando variação significativa.`,
+          recommendation: 'Padronize processos e implemente controles para reduzir variabilidade nas receitas.',
+          type: 'warning' as const,
+          icon: 'AlertTriangle'
+        })
+      }
+
+      insights.push({
+        id: 3,
+        title: 'Análise de Eficiência Operacional',
+        description: `Sua eficiência operacional está em ${summaryData.performanceMetrics?.efficiency} pontos.`,
+        recommendation: 'Monitore regularmente a relação entre receitas totais e custos de pessoal.',
+        type: 'info' as const,
+        icon: 'Activity'
+      })
+
+      if (summaryData.bestDay) {
+        insights.push({
+          id: 4,
+          title: 'Melhor Performance Identificada',
+          description: `Seu melhor dia foi ${summaryData.bestDay.full_day} com receita de R$ ${summaryData.bestDay.total.toFixed(2)}.`,
+          recommendation: 'Analise os fatores que contribuíram para este resultado e replique em outros dias.',
+          type: 'positive' as const,
+          icon: 'Target'
+        })
+      }
+
+      return insights
+
+    } catch (error) {
+      console.error('Erro ao gerar insights financeiros:', error)
+      return [{
+        id: 1,
+        title: 'Análise em Processamento',
+        description: 'Os insights de IA estão sendo gerados. Tente novamente em alguns instantes.',
+        type: 'info' as const,
+        icon: 'RefreshCw'
+      }]
+    }
   }
 }
 

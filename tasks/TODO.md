@@ -1,8 +1,5 @@
-1. Adicionar foto no ADM
-2. Em configuracoes, configuracoes, colocar uma funcionalidade de baixar o manual que esta no arquivo doc/manual.pdf
-3. Criar uma rota de documentacao do sistema, onde aparece as funcionalidades do sistema web, o que cada rota faz, as requisoes da API, etc. Tudo de forma completa e profissional, para desenvolvedores olharem o sistema.
+1. Em configuracoes, configuracoes, colocar uma funcionalidade de baixar o manual que esta no arquivo doc/manual/gestao.pdf, deve ser possivel baixar o manual.
+2. Ainda nao esta funcionando salvar a imagem do adm, e tambem, tem que informar que so aceita imagens .jpg
+3. Adicionar as credenciais que estao no arquivo .env na vercel, me direcionar a colocar todas as credencias na vercel.
 4. Com base na estrutura do sistema web em VueJS, criar um arquivo em codigo Latex, onde sera um guia de como utilizar o sistema web, como utilizar todas as rotas, como que funciona, o que esta de baixo dos panos como o banco de dados do supabse, o vuejs, como que o sistema funciona, o que cada rota faz e como utilizar cada rota. Explicacoes bem completa e funcional, sem erros ortograficos e linguagem profissional e tecnica.
-5. Adicionar as credenciais que estao no arquivo .env na vercel
-6. Com base na estrutura do sistema web em VueJS, criar um arquivo em codigo Latex, onde sera um guia de como utilizar o sistema web, como utilizar todas as rotas, como que funciona, o que esta de baixo dos panos como o banco de dados do supabse, o vuejs, como que o sistema funciona, o que cada rota faz e como utilizar cada rota. Explicacoes bem completa e funcional, sem erros ortograficos e linguagem profissional e tecnica.
 O designe da documentacao tem que ter fundo azul bem claro.
-Tem que tem uma capa profissional do restaurante.

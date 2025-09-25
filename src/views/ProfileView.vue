@@ -4,22 +4,14 @@
     <header class="profile-header">
       <div class="header-content">
         <div class="header-info">
-          <div class="avatar-section">
-            <div class="avatar">
-              <img v-if="user?.avatar_url" :src="user.avatar_url" :alt="user.name" />
-              <User v-else :size="32" />
-            </div>
-            <div class="upload-overlay" @click="triggerFileUpload">
-              <Camera :size="16" />
-            </div>
-            <input
-              ref="fileInput"
-              type="file"
-              accept="image/*"
-              @change="handleAvatarUpload"
-              style="display: none"
-            />
-          </div>
+          <AvatarUpload
+            :avatar-url="user?.avatar_url"
+            :user-name="user?.name"
+            :size="80"
+            @upload-success="handleAvatarSuccess"
+            @upload-error="handleAvatarError"
+            @upload-start="isLoading = true"
+          />
           <div class="user-info">
             <h1>{{ user?.name || 'Usuário' }}</h1>
             <p>{{ getUserRole() }}</p>
@@ -357,9 +349,10 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import {
   User, UserCheck, Mail, Lock, Shield, Settings, Activity, Calendar,
-  Save, RotateCcw, Camera, Clock, AtSign, Eye, EyeOff,
+  Save, RotateCcw, Clock, AtSign, Eye, EyeOff,
   CheckCircle, AlertCircle, Loader2
 } from 'lucide-vue-next'
+import AvatarUpload from '@/components/AvatarUpload.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useThemeStore } from '@/stores/theme'
 import { profileService, type UserStats, type SecurityStatus } from '@/services/profileService'
@@ -374,7 +367,6 @@ const { user } = authStore
 const isLoading = ref(false)
 const isLoadingProfile = ref(true)
 const hasChanges = ref(false)
-const fileInput = ref<HTMLInputElement>()
 const saveMessage = ref('')
 
 // Dados do formulário (inicializados vazios, serão carregados)
@@ -531,30 +523,29 @@ function togglePasswordVisibility(field: 'current' | 'new' | 'confirm') {
   showPasswords.value[field] = !showPasswords.value[field]
 }
 
-function triggerFileUpload() {
-  fileInput.value?.click()
-}
-
-async function handleAvatarUpload(event: Event) {
-  const file = (event.target as HTMLInputElement).files?.[0]
-  if (!file) return
-
-  isLoading.value = true
+async function handleAvatarSuccess(avatarUrl: string) {
   try {
-    await profileService.uploadAvatar(file)
+    // Atualizar o usuário local imediatamente para feedback visual
+    if (user) {
+      user.avatar_url = avatarUrl
+    }
 
-    // Avatar upload foi bem sucedido
+    // Marcar como alterado para salvar depois se necessário
     markAsChanged()
 
     saveMessage.value = 'Avatar enviado com sucesso!'
     setTimeout(() => saveMessage.value = '', 3000)
   } catch (error: any) {
-    console.error('Erro no upload do avatar:', error)
-    saveMessage.value = `Erro no upload: ${error.message}`
-    setTimeout(() => saveMessage.value = '', 5000)
+    console.error('Erro ao processar sucesso do avatar:', error)
   } finally {
     isLoading.value = false
   }
+}
+
+function handleAvatarError(errorMessage: string) {
+  saveMessage.value = `Erro no upload: ${errorMessage}`
+  setTimeout(() => saveMessage.value = '', 5000)
+  isLoading.value = false
 }
 
 function formatDate(date: Date) {
@@ -661,53 +652,6 @@ onMounted(async () => {
   gap: 1.5rem;
 }
 
-.avatar-section {
-  position: relative;
-}
-
-.avatar {
-  width: 80px;
-  height: 80px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 24px;
-  font-weight: bold;
-  position: relative;
-  overflow: hidden;
-}
-
-.avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 50%;
-}
-
-.upload-overlay {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 28px;
-  height: 28px;
-  background: #4facfe;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  cursor: pointer;
-  border: 3px solid white;
-  transition: all 0.3s ease;
-}
-
-.upload-overlay:hover {
-  background: #00f2fe;
-  transform: scale(1.1);
-}
 
 .user-info h1 {
   margin: 0 0 0.5rem 0;

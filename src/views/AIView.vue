@@ -168,6 +168,43 @@
           </div>
 
           <div
+            class="analysis-card financial"
+            @click="runFinancialAnalysis"
+            :class="{ 'loading': loading.financial, 'completed': analyses.financial }"
+          >
+            <div class="card-status">
+              <div class="status-indicator"></div>
+            </div>
+            <div class="card-icon">
+              <DollarSign :size="28" />
+            </div>
+            <div class="card-content">
+              <div class="card-title">
+                <h3>Análise Financeira</h3>
+                <button :disabled="loading.financial" class="run-btn">
+                  <Loader2 v-if="loading.financial" :size="18" class="animate-spin" />
+                  <PlayCircle v-else :size="18" />
+                </button>
+              </div>
+              <p>Insights sobre receitas, custos operacionais e otimização financeira</p>
+              <div class="card-metrics">
+                <div class="metric">
+                  <TrendingUp :size="14" />
+                  <span>Crescimento de receitas</span>
+                </div>
+                <div class="metric">
+                  <Users :size="14" />
+                  <span>Custos de pessoal</span>
+                </div>
+                <div class="metric">
+                  <Target :size="14" />
+                  <span>Eficiência operacional</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div
             class="analysis-card performance"
             @click="runPerformanceAnalysis"
             :class="{ 'loading': loading.performance, 'completed': analyses.performance }"
@@ -429,6 +466,7 @@ const loading = ref({
   purchase: false,
   menu: false,
   performance: false,
+  financial: false,
   chat: false
 })
 
@@ -600,6 +638,33 @@ async function runMenuOptimization() {
   }
 }
 
+async function runFinancialAnalysis() {
+  if (loading.value.financial) return
+
+  loading.value.financial = true
+  errorMessage.value = ''
+
+  try {
+    const result = await aiService.analyzeFinancialData()
+
+    analyses.value.financial = {
+      type: 'financial',
+      title: 'Análise Financeira Completa',
+      content: result,
+      timestamp: new Date(),
+      icon: 'DollarSign'
+    }
+
+    console.log('✅ Análise financeira concluída')
+
+  } catch (error) {
+    console.error('❌ Erro na análise financeira:', error)
+    errorMessage.value = 'Erro ao executar análise financeira. Verifique a configuração da API.'
+  } finally {
+    loading.value.financial = false
+  }
+}
+
 async function runPerformanceAnalysis() {
   if (loading.value.performance) return
 
@@ -651,6 +716,8 @@ async function runAllAnalysis() {
   await runPurchaseSuggestions()
   await new Promise(resolve => setTimeout(resolve, 2000)) // 2s delay
   await runMenuOptimization()
+  await new Promise(resolve => setTimeout(resolve, 2000)) // 2s delay
+  await runFinancialAnalysis()
   await new Promise(resolve => setTimeout(resolve, 2000)) // 2s delay
   await runPerformanceAnalysis()
 }
@@ -1067,6 +1134,10 @@ onMounted(() => {
 
 .analysis-card.menu .card-icon {
   background: linear-gradient(135deg, var(--theme-accent-success), #059669);
+}
+
+.analysis-card.financial .card-icon {
+  background: linear-gradient(135deg, #10b981, #059669);
 }
 
 .analysis-card.performance .card-icon {

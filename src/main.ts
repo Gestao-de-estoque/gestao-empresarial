@@ -9,3 +9,8 @@ app.use(createPinia())
 app.use(router)
 
 app.mount('#app')
+
+// Carregar testes de avatar em desenvolvimento
+if (import.meta.env.DEV) {
+  import('./utils/avatarTest')
+}

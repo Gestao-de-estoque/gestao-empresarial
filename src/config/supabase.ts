@@ -24,5 +24,6 @@ export const DB_TABLES = {
   MENU_DAILY: 'menu_diario',
   WEEKLY_PLANNING: 'planejamento_semanal',
   SUPPLIERS: 'suppliers',
-  SETTINGS: 'app_settings'
+  SETTINGS: 'app_settings',
+  FINANCIAL: 'financial_data'
 }
