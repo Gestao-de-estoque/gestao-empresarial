@@ -526,7 +526,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import {
   FileText, Search, Sun, Moon, Terminal, Menu, Zap, Map, Server, Layers, Code,
   Package, Brain, DollarSign, BarChart3, ArrowUp, Shield, Globe, Database

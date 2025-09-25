@@ -39,6 +39,7 @@ export async function migrateFinancialData() {
 
     // Tenta importar do arquivo data.js primeiro
     try {
+      // @ts-ignore - data.js is a dynamic import that may not exist
       const dataModule = await import('../data/data.js') as { default?: any; data?: any }
       rawData = dataModule.default || dataModule.data || []
     } catch (importError) {
