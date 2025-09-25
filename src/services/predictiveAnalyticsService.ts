@@ -162,7 +162,7 @@ export class PredictiveAnalyticsService {
     const values = historicalData.map(d => d.total || 0)
 
     // Simular análise de tendência usando média móvel e regressão linear simples
-    const _movingAverage = this.calculateMovingAverage(values, 7)
+    // const _movingAverage = this.calculateMovingAverage(values, 7) // Unused
     const trend = this.calculateTrend(values)
     const seasonality = this.detectSeasonality(values)
 
@@ -246,7 +246,7 @@ export class PredictiveAnalyticsService {
     if (data.length < 30) return insights
 
     const weeklyPattern = this.analyzeWeeklyPattern(data)
-    const _monthlyPattern = this.analyzeMonthlyPattern(data)
+    // const _monthlyPattern = this.analyzeMonthlyPattern(data) // Unused
 
     if (weeklyPattern.peakDay) {
       insights.push({

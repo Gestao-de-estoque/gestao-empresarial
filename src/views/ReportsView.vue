@@ -776,9 +776,9 @@ const periods = [
 ]
 
 const chartTypes = [
-  { label: 'Padrão', value: 'standard', icon: BarChart3 },
-  { label: 'Avançado', value: 'advanced', icon: Target },
-  { label: 'Preditivo', value: 'predictive', icon: Zap }
+  { label: 'Padrão', value: 'standard' as const, icon: BarChart3 },
+  { label: 'Avançado', value: 'advanced' as const, icon: Target },
+  { label: 'Preditivo', value: 'predictive' as const, icon: Zap }
 ]
 
 interface AnalyticsData {
@@ -1451,6 +1451,7 @@ const radarChartOptions = {
 }
 */
 
+/*
 const scatterChartOptions = {
   responsive: true,
   maintainAspectRatio: false,
@@ -1460,7 +1461,7 @@ const scatterChartOptions = {
       callbacks: {
         title: () => '',
         label: (context: any) =>
-          `${context.dataset.data[context.dataIndex].product}: R$ ${context.parsed.x} | ${context.parsed.y} vendas`
+          \`\${context.dataset.data[context.dataIndex].product}: R$ \${context.parsed.x} | \${context.parsed.y} vendas\`
       }
     }
   },
@@ -1475,7 +1476,9 @@ const scatterChartOptions = {
     }
   }
 }
+*/
 
+/*
 const polarChartOptions = {
   responsive: true,
   maintainAspectRatio: false,
@@ -1483,7 +1486,7 @@ const polarChartOptions = {
     legend: { display: true, position: 'right' as const },
     tooltip: {
       callbacks: {
-        label: (context: any) => `${context.label}: ${context.formattedValue}%`
+        label: (context: any) => \`\${context.label}: \${context.formattedValue}%\`
       }
     }
   },
@@ -1494,6 +1497,7 @@ const polarChartOptions = {
     }
   }
 }
+*/
 
 function getScoreClass(score: number): string {
   if (score >= 80) return 'excellent'
@@ -1839,9 +1843,9 @@ watch(selectedPeriod, () => {
 //   return periods.find(p => p.value === selectedPeriod.value)?.label || '30 dias'
 // })
 
-const hasAIAnalysis = computed(() => {
-  return !!aiAnalysis.value && Object.keys(aiAnalysis.value).length > 0
-})
+// const hasAIAnalysis = computed(() => {
+//   return !!aiAnalysis.value && Object.keys(aiAnalysis.value).length > 0
+// })
 
 // const overallHealthScore = computed(() => {
 //   if (!hasAIAnalysis.value) return 0

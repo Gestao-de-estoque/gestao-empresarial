@@ -34,7 +34,7 @@ export interface LogStats {
 }
 
 class LogsService {
-  private _baseURL = '/api/logs' // Replace with your actual API base URL
+  // private _baseURL = '/api/logs' // Replace with your actual API base URL - unused
   private logs: LogEntry[] = []
 
   // Generate sample logs for demonstration

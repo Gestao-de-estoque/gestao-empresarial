@@ -271,7 +271,7 @@ export class AdvancedExportService {
       const canvas = await html2canvas(dashboardElement, {
         useCORS: true,
         logging: false,
-        backgroundColor: '#ffffff',
+        background: '#ffffff',
         width: dashboardElement.scrollWidth,
         height: dashboardElement.scrollHeight
       })
@@ -406,7 +406,7 @@ export class AdvancedExportService {
 
     for (const chart of charts.slice(0, 2)) {
       try {
-        const canvas = await html2canvas(chart, { backgroundColor: '#ffffff' })
+        const canvas = await html2canvas(chart, { background: '#ffffff' })
         const imgData = canvas.toDataURL('image/png')
 
         const imgWidth = pageWidth - 40
@@ -726,7 +726,7 @@ export class AdvancedExportService {
   }
 
   private prepareInsightsForPowerBI(aiAnalysis: any): any[] {
-    const insights = []
+    const insights: any[] = []
 
     if (aiAnalysis.insights) {
       aiAnalysis.insights.forEach((insight: string, index: number) => {
