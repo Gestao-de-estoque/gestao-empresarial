@@ -6,6 +6,7 @@ import InventoryView from '@/views/InventoryView.vue'
 import AIView from '@/views/AIView.vue'
 import ProfileView from '@/views/ProfileView.vue'
 import ReportsView from '@/views/ReportsView.vue'
+import LogsView from '@/views/LogsView.vue'
 import SuppliersView from '@/views/SuppliersView.vue'
 import MenuView from '@/views/MenuView.vue'
 import SettingsView from '@/views/SettingsView.vue'
@@ -52,6 +53,12 @@ const router = createRouter({
       path: '/reports',
       name: 'reports',
       component: ReportsView,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/logs',
+      name: 'logs',
+      component: LogsView,
       meta: { requiresAuth: true }
     },
     {
