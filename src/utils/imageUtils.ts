@@ -86,12 +86,12 @@ export function resizeImage(file: File, options: ResizeOptions): Promise<File> {
  * Valida se o arquivo é uma imagem válida
  */
 export function validateImageFile(file: File): { valid: boolean; error?: string } {
-  const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+  const validTypes = ['image/jpeg', 'image/jpg']
 
   if (!validTypes.includes(file.type)) {
     return {
       valid: false,
-      error: 'Formato não suportado. Use JPG, PNG, GIF ou WebP.'
+      error: 'Formato não suportado. Apenas arquivos JPG são aceitos.'
     }
   }
 

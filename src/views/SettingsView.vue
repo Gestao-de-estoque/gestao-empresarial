@@ -156,6 +156,27 @@
                 </label>
               </div>
             </div>
+
+            <div class="setting-group">
+              <h3>Manual do Sistema</h3>
+              <p>Baixe o manual completo de uso do sistema de gestão</p>
+
+              <div class="manual-download-section">
+                <div class="manual-info">
+                  <div class="manual-icon">
+                    <FileText :size="32" />
+                  </div>
+                  <div class="manual-details">
+                    <h4>Manual de Gestão</h4>
+                    <p>Guia completo para utilização do sistema</p>
+                  </div>
+                </div>
+                <button @click="downloadManual" class="btn-download" :disabled="downloading">
+                  <Download :size="16" />
+                  {{ downloading ? 'Baixando...' : 'Baixar Manual' }}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -633,7 +654,7 @@ import { debugSettingsTable } from '@/utils/debugSettings'
 // Icons
 import {
   Settings, Save, Globe, Package, Bell, Shield, Palette, Code,
-  Eye, EyeOff, RefreshCw, CheckCircle, AlertCircle
+  Eye, EyeOff, RefreshCw, CheckCircle, AlertCircle, FileText, Download
 } from 'lucide-vue-next'
 
 // Types
@@ -645,6 +666,7 @@ interface SaveStatus {
 // State
 const saving = ref(false)
 const loading = ref(true)
+const downloading = ref(false)
 const activeSection = ref('general')
 const showApiKey = ref(false)
 const saveStatus = ref<SaveStatus | null>(null)
@@ -763,6 +785,30 @@ function generateApiKey() {
   showSaveStatus('success', 'Nova chave API gerada!')
   // Auto-save após gerar nova chave
   saveSectionSettings('advanced')
+}
+
+async function downloadManual() {
+  try {
+    downloading.value = true
+
+    // Create a link to download the PDF file
+    const link = document.createElement('a')
+    link.href = '/doc/manual/gestao.pdf'
+    link.download = 'Manual_Gestao_Sistema.pdf'
+    link.target = '_blank'
+
+    // Append to body and trigger download
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+
+    showSaveStatus('success', 'Manual baixado com sucesso!')
+  } catch (error) {
+    console.error('Erro ao baixar manual:', error)
+    showSaveStatus('error', 'Erro ao baixar o manual')
+  } finally {
+    downloading.value = false
+  }
 }
 
 function showSaveStatus(type: 'success' | 'error', message: string) {
@@ -1454,5 +1500,92 @@ onMounted(async () => {
 .auth-actions .btn-primary,
 .auth-actions .btn-secondary {
   min-width: 120px;
+}
+
+/* Manual Download Section */
+.manual-download-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(168, 85, 247, 0.05) 100%);
+  border: 2px solid rgba(99, 102, 241, 0.1);
+  border-radius: 12px;
+  margin-top: 16px;
+}
+
+.manual-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.manual-icon {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, var(--theme-primary), var(--theme-secondary));
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.manual-details h4 {
+  margin: 0 0 4px 0;
+  color: var(--theme-text-primary);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.manual-details p {
+  margin: 0;
+  color: var(--theme-text-secondary);
+  font-size: 14px;
+}
+
+.btn-download {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #6366F1, #A855F7);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.btn-download:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+}
+
+.btn-download:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+@media (max-width: 768px) {
+  .manual-download-section {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+  }
+
+  .manual-info {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .btn-download {
+    width: 100%;
+    justify-content: center;
+  }
 }
 </style>

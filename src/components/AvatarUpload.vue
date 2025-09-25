@@ -14,7 +14,7 @@
     <input
       ref="fileInput"
       type="file"
-      accept="image/*"
+      accept=".jpg,.jpeg,image/jpeg"
       @change="handleFileSelect"
       style="display: none"
     />
@@ -25,6 +25,7 @@
         <div class="preview-content" @click.stop>
           <div class="preview-header">
             <h3>Confirmar nova foto do perfil</h3>
+            <p class="format-info">Apenas arquivos JPG são aceitos</p>
             <button @click="closePreview" class="close-btn" :disabled="isUploading">
               <X :size="20" />
             </button>
@@ -356,10 +357,17 @@ watch(() => props.avatarUrl, (newUrl) => {
 }
 
 .preview-header h3 {
-  margin: 0;
+  margin: 0 0 4px 0;
   font-size: 1.25rem;
   font-weight: 700;
   color: #333;
+}
+
+.format-info {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #666;
+  font-style: italic;
 }
 
 .close-btn {

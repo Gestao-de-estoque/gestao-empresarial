@@ -311,6 +311,9 @@ class ProfileService {
         fileType: file.type
       })
 
+      // Verificar se o bucket existe, se não, tentar criar
+      await this.ensureAvatarBucket()
+
       // Upload para Supabase Storage com retry
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('user-avatars')
@@ -323,6 +326,11 @@ class ProfileService {
         console.error('Erro no upload:', uploadError)
         if (uploadError.message.includes('already exists')) {
           throw new Error('Erro interno: conflito de arquivo. Tente novamente.')
+        }
+        if (uploadError.message.includes('not found') || uploadError.message.includes('bucket')) {
+          // Fallback: salvar como base64 no banco
+          console.log('🔄 Tentando fallback: salvar imagem como base64...')
+          return await this.uploadAvatarFallback(file)
         }
         throw new Error(`Erro no upload: ${uploadError.message}`)
       }
@@ -404,6 +412,86 @@ class ProfileService {
     } catch (error) {
       console.warn('Erro na limpeza do arquivo:', error)
     }
+  }
+
+  /**
+   * Garante que o bucket para avatars existe
+   */
+  private async ensureAvatarBucket(): Promise<void> {
+    try {
+      // Tentar listar buckets para verificar se existe
+      const { data: buckets, error: listError } = await supabase.storage.listBuckets()
+
+      if (listError) {
+        console.warn('Erro ao listar buckets:', listError)
+        return
+      }
+
+      const bucketExists = buckets?.some(bucket => bucket.id === 'user-avatars')
+
+      if (!bucketExists) {
+        console.log('📦 Bucket user-avatars não encontrado, tentando criar...')
+
+        // Tentar criar o bucket
+        const { error: createError } = await supabase.storage.createBucket('user-avatars', {
+          public: true,
+          allowedMimeTypes: ['image/jpeg'],
+          fileSizeLimit: 10485760 // 10MB
+        })
+
+        if (createError) {
+          console.error('Erro ao criar bucket:', createError)
+        } else {
+          console.log('✅ Bucket user-avatars criado com sucesso')
+        }
+      }
+    } catch (error) {
+      console.warn('Erro ao verificar/criar bucket:', error)
+      // Não propagar erro pois pode ser um problema de permissões
+    }
+  }
+
+  /**
+   * Fallback: salva avatar como base64 no banco quando Storage não funciona
+   */
+  private async uploadAvatarFallback(file: File): Promise<string> {
+    try {
+      const user = this.getCurrentUser()
+
+      // Converter arquivo para base64
+      const base64 = await this.fileToBase64(file)
+
+      // Atualizar perfil com base64
+      const { error: updateError } = await supabase
+        .from(DB_TABLES.USERS)
+        .update({
+          avatar_url: base64,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id)
+
+      if (updateError) {
+        throw new Error(`Erro ao salvar avatar: ${updateError.message}`)
+      }
+
+      console.log('✅ Avatar salvo como base64 no banco de dados')
+      return base64
+    } catch (error: any) {
+      console.error('❌ Erro no fallback do avatar:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Converte arquivo para base64
+   */
+  private fileToBase64(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(reader.result as string)
+      reader.onerror = () => reject(new Error('Erro ao ler arquivo'))
+      reader.readAsDataURL(file)
+    })
   }
 
   async ensureUserColumns(): Promise<void> {

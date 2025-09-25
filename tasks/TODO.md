@@ -1,6 +1,2 @@
-1. Em configuracoes, configuracoes, colocar uma funcionalidade de baixar o manual que esta no arquivo doc/manual/gestao.pdf, deve ser possivel baixar o manual.
-2. Ainda nao esta funcionando salvar a imagem do adm, e tambem, tem que informar que so aceita imagens .jpg
-3. Adicionar as credenciais que estao no arquivo .env na vercel, me direcionar a colocar todas as credencias na vercel.
-4. Melhorar a rota /financial para conter analise de dados avancada, melhorar a parte de desgine, as vezes o cliente gostaria que analisasse de uma data para outra, ou seja, so pegar o ano tal, ou o mes todo de 2023, ou a semana, ou dois ou tres dias.
-4. Com base na estrutura do sistema web em VueJS, criar um arquivo em codigo Latex, onde sera um guia de como utilizar o sistema web, como utilizar todas as rotas, como que funciona, o que esta de baixo dos panos como o banco de dados do supabse, o vuejs, como que o sistema funciona, o que cada rota faz e como utilizar cada rota. Explicacoes bem completa e funcional, sem erros ortograficos e linguagem profissional e tecnica.
+1. Com base na estrutura do sistema web em VueJS, criar um arquivo em codigo Latex, onde sera um guia de como utilizar o sistema web, como utilizar todas as rotas, como que funciona, o que esta de baixo dos panos como o banco de dados do supabse, o vuejs, como que o sistema funciona, o que cada rota faz e como utilizar cada rota. Explicacoes bem completa e funcional, sem erros ortograficos e linguagem profissional e tecnica.
 O designe da documentacao tem que ter fundo azul bem claro.
