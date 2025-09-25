@@ -239,14 +239,7 @@
             <CodeBlock
               language="javascript"
               filename="dashboard-api.js"
-              :code="`// Estatísticas gerais
-GET /api/dashboard/stats
-
-// Movimentações recentes
-GET /api/movements?limit=10&order=desc
-
-// Status do banco de dados
-GET /api/database/stats`"
+              :code="dashboardApiCode"
             />
           </DocBlock>
         </DocSection>
@@ -274,19 +267,7 @@ GET /api/database/stats`"
             <CodeBlock
               language="sql"
               filename="produtos.sql"
-              :code="`CREATE TABLE produtos (
-    id BIGSERIAL PRIMARY KEY,
-    nome VARCHAR(255) NOT NULL,
-    descricao TEXT,
-    preco DECIMAL(10,2),
-    categoria_id BIGINT REFERENCES categorias(id),
-    quantidade_estoque INTEGER DEFAULT 0,
-    quantidade_minima INTEGER DEFAULT 0,
-    codigo_barras VARCHAR(100),
-    ativo BOOLEAN DEFAULT true,
-    created_at TIMESTAMP DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
-);`"
+              :code="sqlProductsCode"
             />
           </DocBlock>
 
@@ -294,33 +275,7 @@ GET /api/database/stats`"
             <CodeBlock
               language="javascript"
               filename="inventory-api.js"
-              :code="`// Listar produtos
-GET /api/products?page=1&limit=20&category=1
-
-// Criar produto
-POST /api/products
-{
-  \"nome\": \"Produto Exemplo\",
-  \"descricao\": \"Descrição\",
-  \"preco\": 10.99,
-  \"categoria_id\": 1,
-  \"quantidade_estoque\": 100
-}
-
-// Atualizar produto
-PUT /api/products/:id
-
-// Deletar produto
-DELETE /api/products/:id
-
-// Movimentação de estoque
-POST /api/movements
-{
-  \"produto_id\": 1,
-  \"tipo\": \"entrada\",
-  \"quantidade\": 50,
-  \"observacoes\": \"Compra\"
-}`"
+              :code="inventoryApiCode"
             />
           </DocBlock>
         </DocSection>
@@ -348,9 +303,7 @@ POST /api/movements
             <CodeBlock
               language="bash"
               filename=".env"
-              :code="`# Google Gemini AI Configuration
-VITE_GEMINI_API_KEY=your-api-key
-VITE_GEMINI_API_URL=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent`"
+              :code="aiConfigCode"
             />
           </DocBlock>
 
@@ -358,20 +311,7 @@ VITE_GEMINI_API_URL=https://generativelanguage.googleapis.com/v1beta/models/gemi
             <CodeBlock
               language="javascript"
               filename="ai-service.js"
-              :code="`import { aiService } from '@/services/aiService'
-
-// Análise de vendas
-const analysis = await aiService.analyzeData({
-  type: 'sales',
-  period: 'last-month',
-  products: productData
-})
-
-// Chat com IA
-const response = await aiService.chat({
-  message: 'Qual produto tem maior rotatividade?',
-  context: inventoryData
-})`"
+              :code="aiServiceCode"
             />
           </DocBlock>
         </DocSection>
@@ -399,26 +339,7 @@ const response = await aiService.chat({
             <CodeBlock
               language="sql"
               filename="financial.sql"
-              :code="`-- Transações financeiras
-CREATE TABLE financial_transactions (
-    id BIGSERIAL PRIMARY KEY,
-    type VARCHAR(20) CHECK (type IN ('receita', 'despesa')),
-    category VARCHAR(100),
-    description TEXT,
-    amount DECIMAL(15,2) NOT NULL,
-    date DATE DEFAULT CURRENT_DATE,
-    payment_method VARCHAR(50),
-    created_at TIMESTAMP DEFAULT NOW()
-);
-
--- Categorias financeiras
-CREATE TABLE financial_categories (
-    id BIGSERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    type VARCHAR(20) CHECK (type IN ('receita', 'despesa')),
-    color VARCHAR(7),
-    created_at TIMESTAMP DEFAULT NOW()
-);`"
+              :code="financialSqlCode"
             />
           </DocBlock>
         </DocSection>
@@ -435,18 +356,7 @@ CREATE TABLE financial_categories (
             <CodeBlock
               language="javascript"
               filename="auth-example.js"
-              :code="`// Headers obrigatórios
-const headers = {
-  'Authorization': 'Bearer YOUR_JWT_TOKEN',
-  'Content-Type': 'application/json',
-  'apikey': 'YOUR_SUPABASE_ANON_KEY'
-}
-
-// Exemplo de requisição
-const response = await fetch('/api/products', {
-  headers,
-  method: 'GET'
-})`"
+              :code="authExampleCode"
             />
           </DocBlock>
 
@@ -683,6 +593,110 @@ VITE_GEMINI_API_URL=https://generativelanguage.googleapis.com/v1beta/models/gemi
 # App Configuration
 VITE_APP_NAME=GestaoZe System
 VITE_APP_VERSION=1.0.0`
+
+const dashboardApiCode = `// Estatísticas gerais
+GET /api/dashboard/stats
+
+// Movimentações recentes
+GET /api/movements?limit=10&order=desc
+
+// Status do banco de dados
+GET /api/database/stats`
+
+const sqlProductsCode = `CREATE TABLE produtos (
+    id BIGSERIAL PRIMARY KEY,
+    nome VARCHAR(255) NOT NULL,
+    descricao TEXT,
+    preco DECIMAL(10,2),
+    categoria_id BIGINT REFERENCES categorias(id),
+    quantidade_estoque INTEGER DEFAULT 0,
+    quantidade_minima INTEGER DEFAULT 0,
+    codigo_barras VARCHAR(100),
+    ativo BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);`
+
+const inventoryApiCode = `// Listar produtos
+GET /api/products?page=1&limit=20&category=1
+
+// Criar produto
+POST /api/products
+{
+  "nome": "Produto Exemplo",
+  "descricao": "Descrição",
+  "preco": 10.99,
+  "categoria_id": 1,
+  "quantidade_estoque": 100
+}
+
+// Atualizar produto
+PUT /api/products/:id
+
+// Deletar produto
+DELETE /api/products/:id
+
+// Movimentação de estoque
+POST /api/movements
+{
+  "produto_id": 1,
+  "tipo": "entrada",
+  "quantidade": 50,
+  "observacoes": "Compra"
+}`
+
+const aiConfigCode = `# Google Gemini AI Configuration
+VITE_GEMINI_API_KEY=your-api-key
+VITE_GEMINI_API_URL=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent`
+
+const aiServiceCode = `import { aiService } from '@/services/aiService'
+
+// Análise de vendas
+const analysis = await aiService.analyzeData({
+  type: 'sales',
+  period: 'last-month',
+  products: productData
+})
+
+// Chat com IA
+const response = await aiService.chat({
+  message: 'Qual produto tem maior rotatividade?',
+  context: inventoryData
+})`
+
+const financialSqlCode = `-- Transações financeiras
+CREATE TABLE financial_transactions (
+    id BIGSERIAL PRIMARY KEY,
+    type VARCHAR(20) CHECK (type IN ('receita', 'despesa')),
+    category VARCHAR(100),
+    description TEXT,
+    amount DECIMAL(15,2) NOT NULL,
+    date DATE DEFAULT CURRENT_DATE,
+    payment_method VARCHAR(50),
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Categorias financeiras
+CREATE TABLE financial_categories (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    type VARCHAR(20) CHECK (type IN ('receita', 'despesa')),
+    color VARCHAR(7),
+    created_at TIMESTAMP DEFAULT NOW()
+);`
+
+const authExampleCode = `// Headers obrigatórios
+const headers = {
+  'Authorization': 'Bearer YOUR_JWT_TOKEN',
+  'Content-Type': 'application/json',
+  'apikey': 'YOUR_SUPABASE_ANON_KEY'
+}
+
+// Exemplo de requisição
+const response = await fetch('/api/products', {
+  headers,
+  method: 'GET'
+})`
 
 // Funções
 function toggleTheme() {
