@@ -433,6 +433,166 @@
       </section>
     </div>
 
+    <!-- Seção de Análise Preditiva -->
+    <div v-if="predictiveInsights.length > 0" class="predictive-section">
+      <div class="section-header">
+        <h2>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            <path d="M13 8l-3 3 3 3"/>
+          </svg>
+          Análise Preditiva Avançada
+        </h2>
+        <div class="prediction-accuracy">
+          <span class="accuracy-label">Precisão Média:</span>
+          <div class="accuracy-value">{{ calculateAveragePredictionAccuracy() }}%</div>
+        </div>
+      </div>
+
+      <div class="predictive-grid">
+        <!-- Previsão de Vendas -->
+        <div class="predictive-panel sales-forecast">
+          <div class="panel-header">
+            <h3>
+              <TrendingUp :size="20" />
+              Previsão de Vendas - 30 Dias
+            </h3>
+          </div>
+          <div class="forecast-chart" v-if="salesForecast.length > 0">
+            <Line
+              :data="getForecastChartData()"
+              :options="getForecastChartOptions()"
+            />
+          </div>
+          <div class="forecast-summary">
+            <div class="forecast-metric">
+              <span class="metric-label">Previsão Total:</span>
+              <span class="metric-value">R$ {{ formatCurrency(getTotalForecast()) }}</span>
+            </div>
+            <div class="forecast-metric">
+              <span class="metric-label">Confiança Média:</span>
+              <span class="metric-value">{{ getAverageConfidence() }}%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Insights Preditivos -->
+        <div class="predictive-panel insights-panel">
+          <div class="panel-header">
+            <h3>
+              <Zap :size="20" />
+              Insights Preditivos
+            </h3>
+          </div>
+          <div class="insights-list">
+            <div
+              v-for="insight in predictiveInsights.slice(0, 5)"
+              :key="insight.title"
+              class="insight-item"
+              :class="{
+                'high-impact': insight.impact === 'high',
+                'medium-impact': insight.impact === 'medium',
+                'low-impact': insight.impact === 'low'
+              }"
+            >
+              <div class="insight-header">
+                <div class="insight-type" :class="insight.type">
+                  <component
+                    :is="getInsightIcon(insight.type)"
+                    :size="16"
+                  />
+                  {{ insight.type.toUpperCase() }}
+                </div>
+                <div class="insight-confidence">{{ insight.confidence }}%</div>
+              </div>
+              <h4 class="insight-title">{{ insight.title }}</h4>
+              <p class="insight-description">{{ insight.description }}</p>
+              <div class="insight-timeframe">{{ insight.timeframe }}</div>
+              <div v-if="insight.actionRequired" class="action-required">
+                ⚠️ Ação Necessária
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Previsão de Demanda -->
+        <div class="predictive-panel demand-panel">
+          <div class="panel-header">
+            <h3>
+              <Package :size="20" />
+              Previsão de Demanda - Produtos
+            </h3>
+          </div>
+          <div class="demand-list">
+            <div
+              v-for="(forecast, product) in demandForecast"
+              :key="product"
+              class="demand-item"
+            >
+              <div class="product-info">
+                <div class="product-name">{{ product }}</div>
+                <div class="current-stock">Estoque: {{ forecast.currentStock }}</div>
+              </div>
+              <div class="demand-forecast">
+                <div class="predicted-demand">{{ forecast.predictedDemand }}</div>
+                <div class="demand-label">Demanda Prev.</div>
+              </div>
+              <div class="reorder-recommendation">
+                <div class="reorder-qty" :class="{
+                  'urgent': forecast.riskLevel === 'high',
+                  'warning': forecast.riskLevel === 'medium',
+                  'good': forecast.riskLevel === 'low'
+                }">
+                  {{ forecast.recommendedOrder > 0 ? `+${forecast.recommendedOrder}` : 'OK' }}
+                </div>
+                <div class="reorder-label">Repor</div>
+              </div>
+              <div class="confidence-bar">
+                <div
+                  class="confidence-fill"
+                  :style="{ width: forecast.confidence + '%' }"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Alertas e Anomalias -->
+      <div v-if="anomalies.length > 0" class="anomalies-section">
+        <div class="anomalies-header">
+          <h3>
+            <AlertTriangle :size="20" />
+            Anomalias Detectadas
+          </h3>
+        </div>
+        <div class="anomalies-grid">
+          <div
+            v-for="anomaly in anomalies"
+            :key="anomaly.title"
+            class="anomaly-card"
+            :class="anomaly.impact"
+          >
+            <div class="anomaly-icon">
+              <AlertTriangle :size="24" />
+            </div>
+            <div class="anomaly-content">
+              <h4>{{ anomaly.title }}</h4>
+              <p>{{ anomaly.description }}</p>
+              <div class="anomaly-recommendations">
+                <strong>Recomendações:</strong>
+                <ul>
+                  <li v-for="rec in anomaly.recommendations.slice(0, 2)" :key="rec">
+                    {{ rec }}
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Tabelas de Dados -->
     <div class="tables-grid">
       <!-- Produtos com Estoque Baixo -->
@@ -527,6 +687,7 @@ import { ref, onMounted, watch, onUnmounted, computed } from 'vue'
 import { reportsService } from '@/services/reportsService'
 import { aiAnalyticsService } from '@/services/aiAnalyticsService'
 import { advancedChartsService } from '@/services/advancedChartsService'
+import { predictiveAnalyticsService } from '@/services/predictiveAnalyticsService'
 import { Line, Bar, Doughnut, Radar, Scatter, PolarArea } from 'vue-chartjs'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -585,6 +746,13 @@ const aiAnalysis = ref<any>(null)
 const salesPrediction = ref<any>(null)
 const inventoryOptimization = ref<any>(null)
 const marketInsights = ref<string[]>([])
+
+// Predictive Analytics State
+const predictiveInsights = ref<any[]>([])
+const salesForecast = ref<any[]>([])
+const demandForecast = ref<any>({})
+const profitabilityPrediction = ref<any[]>([])
+const anomalies = ref<any[]>([])
 
 const periods = [
   { label: '7 dias', value: '7d' as const },
@@ -1016,11 +1184,37 @@ async function generateAIAnalysis() {
     // Recarregar gráficos com dados da IA
     await loadAdvancedCharts()
 
+    // Carregar análises preditivas
+    await loadPredictiveAnalytics()
+
   } catch (error) {
     console.error('Erro na análise de IA:', error)
     alert('Erro ao gerar análise com IA. Verifique sua conexão.')
   } finally {
     aiLoading.value = false
+  }
+}
+
+async function loadPredictiveAnalytics() {
+  try {
+    if (!analytics.value.sales?.dailySales?.length) return
+
+    // Carregar todas as análises preditivas em paralelo
+    const [forecast, insights, anomaliesData, demandPred, profitPred] = await Promise.all([
+      predictiveAnalyticsService.predictSalesPattern(analytics.value.sales.dailySales),
+      predictiveAnalyticsService.analyzeSeasonalPatterns(analytics.value.sales.dailySales),
+      predictiveAnalyticsService.detectAnomalies(analytics.value.sales.dailySales),
+      predictiveAnalyticsService.forecastProductDemand(analytics.value.stock?.lowStockProducts || []),
+      predictiveAnalyticsService.predictProfitability(analytics.value.sales.dailySales, analytics.value.stock)
+    ])
+
+    salesForecast.value = forecast
+    predictiveInsights.value = [...insights, ...profitPred]
+    anomalies.value = anomaliesData
+    demandForecast.value = demandPred
+
+  } catch (error) {
+    console.error('Erro ao carregar análises preditivas:', error)
   }
 }
 
@@ -1084,6 +1278,107 @@ function getPerformanceClass(type: string): string {
       break
   }
   return getScoreClass(score)
+}
+
+// Funções para análise preditiva
+function calculateAveragePredictionAccuracy(): number {
+  if (predictiveInsights.value.length === 0) return 0
+  const totalConfidence = predictiveInsights.value.reduce((acc, insight) => acc + insight.confidence, 0)
+  return Math.round(totalConfidence / predictiveInsights.value.length)
+}
+
+function getForecastChartData(): any {
+  if (!salesForecast.value.length) return { labels: [], datasets: [] }
+
+  const labels = salesForecast.value.map(f => f.period)
+  const predictions = salesForecast.value.map(f => f.predictedValue)
+  const upperBounds = salesForecast.value.map(f => f.upperBound)
+  const lowerBounds = salesForecast.value.map(f => f.lowerBound)
+
+  return {
+    labels,
+    datasets: [
+      {
+        label: 'Previsão',
+        data: predictions,
+        borderColor: '#4facfe',
+        backgroundColor: 'rgba(79, 172, 254, 0.1)',
+        fill: false,
+        tension: 0.4
+      },
+      {
+        label: 'Limite Superior',
+        data: upperBounds,
+        borderColor: '#fca5a5',
+        backgroundColor: 'transparent',
+        borderDash: [5, 5],
+        fill: false
+      },
+      {
+        label: 'Limite Inferior',
+        data: lowerBounds,
+        borderColor: '#a5f3fc',
+        backgroundColor: 'transparent',
+        borderDash: [5, 5],
+        fill: false
+      }
+    ]
+  }
+}
+
+function getForecastChartOptions(): any {
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'top' as const,
+        labels: {
+          color: '#64748b',
+          font: { size: 11 }
+        }
+      },
+      tooltip: {
+        mode: 'index' as const,
+        intersect: false
+      }
+    },
+    scales: {
+      x: {
+        display: true,
+        grid: { display: false },
+        ticks: { color: '#64748b', maxTicksLimit: 10 }
+      },
+      y: {
+        display: true,
+        grid: { color: 'rgba(100, 116, 139, 0.2)' },
+        ticks: { color: '#64748b' }
+      }
+    },
+    elements: {
+      point: { radius: 3 }
+    }
+  }
+}
+
+function getTotalForecast(): number {
+  return salesForecast.value.reduce((acc, f) => acc + f.predictedValue, 0)
+}
+
+function getAverageConfidence(): number {
+  if (!salesForecast.value.length) return 0
+  const totalConfidence = salesForecast.value.reduce((acc, f) => acc + f.confidence, 0)
+  return Math.round(totalConfidence / salesForecast.value.length)
+}
+
+function getInsightIcon(type: string) {
+  switch (type) {
+    case 'trend': return TrendingUp
+    case 'seasonal': return Activity
+    case 'anomaly': return AlertTriangle
+    case 'forecast': return Target
+    default: return Zap
+  }
 }
 
 async function exportToPDF() {
@@ -1535,6 +1830,20 @@ watch(selectedPeriod, () => {
   loadAnalytics()
 })
 
+// Computed
+const currentPeriodLabel = computed(() => {
+  return periods.find(p => p.value === selectedPeriod.value)?.label || '30 dias'
+})
+
+const hasAIAnalysis = computed(() => {
+  return !!aiAnalysis.value && Object.keys(aiAnalysis.value).length > 0
+})
+
+const overallHealthScore = computed(() => {
+  if (!hasAIAnalysis.value) return 0
+  return Math.round((salesPerformance.value + stockPerformance.value + efficiencyPerformance.value) / 3)
+})
+
 // Lifecycle
 onMounted(() => {
   loadAnalytics()
@@ -1550,7 +1859,7 @@ onUnmounted(() => {
 .reports-container {
   padding: 0;
   width: 100vw;
-  background: var(--theme-background);
+  background: linear-gradient(135deg, var(--theme-background) 0%, #f8fafc 100%);
   min-height: 100vh;
   position: relative;
   overflow-x: hidden;
@@ -1565,23 +1874,28 @@ onUnmounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: var(--theme-surface);
+  background: linear-gradient(135deg, var(--theme-surface) 0%, #ffffff 100%);
   padding: 24px 32px;
   border-bottom: 1px solid var(--theme-border);
-  box-shadow: 0 2px 10px var(--theme-shadow);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
   position: sticky;
   top: 0;
   z-index: 100;
+  backdrop-filter: blur(10px);
 }
 
 .header-content h1 {
   display: flex;
   align-items: center;
   gap: 12px;
-  color: var(--theme-text-primary);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   margin: 0;
   font-size: 28px;
-  font-weight: 700;
+  font-weight: 800;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .header-actions {
@@ -1665,31 +1979,86 @@ onUnmounted(() => {
   opacity: 1;
 }
 
-.btn-primary, .btn-secondary {
+.btn-primary, .btn-secondary, .btn-ai {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 12px 20px;
   border-radius: 12px;
   font-weight: 600;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: none;
   cursor: pointer;
+  font-size: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--theme-primary), var(--theme-secondary));
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.btn-primary:hover:not(:disabled)::before {
+  left: 100%;
 }
 
 .btn-primary:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px var(--theme-shadow);
+  box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
 }
 
 .btn-primary:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.btn-ai {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-ai::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.3s, height 0.3s;
+}
+
+.btn-ai:hover:not(:disabled)::after {
+  width: 300px;
+  height: 300px;
+}
+
+.btn-ai:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 12px 35px rgba(79, 172, 254, 0.4);
+}
+
+.btn-ai:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: #cbd5e0;
 }
 
 .btn-secondary {
@@ -1705,9 +2074,53 @@ onUnmounted(() => {
 
 .filters-section {
   margin: 0;
-  background: var(--theme-surface);
+  background: linear-gradient(135deg, var(--theme-surface) 0%, #f7fafc 100%);
   padding: 24px 32px;
   border-bottom: 1px solid var(--theme-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+.chart-type-selector {
+  flex: 1;
+  min-width: 300px;
+}
+
+.chart-type-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.chart-type-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: var(--theme-surface);
+  border: 2px solid var(--theme-border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  color: var(--theme-text-secondary);
+  font-size: 13px;
+}
+
+.chart-type-btn:hover {
+  background: var(--theme-border);
+  color: var(--theme-text-primary);
+  transform: translateY(-1px);
+}
+
+.chart-type-btn.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: #667eea;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
 .period-selector label {
@@ -2028,6 +2441,275 @@ onUnmounted(() => {
   }
 }
 
+/* Estilos da Análise IA */
+.ai-analysis-section {
+  margin: 0;
+  padding: 32px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.ai-panel {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 32px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+  color: var(--theme-text-primary);
+}
+
+.ai-panel .panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #f1f5f9;
+}
+
+.performance-score {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.score-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--theme-text-secondary);
+}
+
+.score-value {
+  font-size: 24px;
+  font-weight: 800;
+  padding: 8px 16px;
+  border-radius: 12px;
+  color: white;
+}
+
+.score-value.excellent { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+.score-value.good { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); }
+.score-value.fair { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+.score-value.poor { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
+
+.ai-content {
+  display: grid;
+  gap: 24px;
+}
+
+.executive-summary {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  padding: 20px;
+  border-radius: 12px;
+  border-left: 4px solid #667eea;
+}
+
+.executive-summary h3 {
+  margin: 0 0 12px 0;
+  color: var(--theme-text-primary);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.executive-summary p {
+  margin: 0;
+  line-height: 1.6;
+  color: var(--theme-text-secondary);
+}
+
+.insights-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.insight-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  border: 1px solid #f1f5f9;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.insight-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+.insight-card.alerts {
+  background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%);
+  border-color: #fca5a5;
+}
+
+.insight-card h4 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--theme-text-primary);
+}
+
+.insight-card ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.insight-card li {
+  padding: 8px 0;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--theme-text-secondary);
+}
+
+.insight-card li:last-child {
+  border-bottom: none;
+}
+
+.insight-card li:before {
+  content: '▸';
+  color: #667eea;
+  font-weight: bold;
+  margin-right: 8px;
+}
+
+/* Gráficos Avançados */
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 24px;
+  padding: 32px;
+  margin: 0;
+}
+
+.chart-panel.primary-chart {
+  grid-column: span 2;
+}
+
+.chart-panel.gauge-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.gauge-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.gauge-chart {
+  position: relative;
+  width: 200px;
+  height: 120px;
+}
+
+.gauge-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -30%);
+  text-align: center;
+}
+
+.gauge-score {
+  font-size: 36px;
+  font-weight: 800;
+  color: var(--theme-text-primary);
+}
+
+.gauge-label {
+  font-size: 12px;
+  color: var(--theme-text-secondary);
+  font-weight: 600;
+}
+
+.performance-indicators {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.indicator {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.indicator span {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--theme-text-secondary);
+  min-width: 80px;
+}
+
+.indicator-bar {
+  flex: 1;
+  height: 6px;
+  background: #f1f5f9;
+  border-radius: 3px;
+  margin-left: 12px;
+  overflow: hidden;
+}
+
+.indicator-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.8s ease;
+}
+
+.indicator.excellent .indicator-fill { background: linear-gradient(90deg, #10b981, #059669); }
+.indicator.good .indicator-fill { background: linear-gradient(90deg, #3b82f6, #1d4ed8); }
+.indicator.fair .indicator-fill { background: linear-gradient(90deg, #f59e0b, #d97706); }
+.indicator.poor .indicator-fill { background: linear-gradient(90deg, #ef4444, #dc2626); }
+
+.chart-metrics {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.metric {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.metric-label {
+  font-size: 11px;
+  color: var(--theme-text-secondary);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.metric-value {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.metric-value.positive { color: #10b981; }
+.metric-value.negative { color: #ef4444; }
+.metric-value.neutral { color: #64748b; }
+
+.ai-analysis-btn {
+  margin-right: 12px;
+}
+
+@media (max-width: 1200px) {
+  .chart-panel.primary-chart {
+    grid-column: span 1;
+  }
+
+  .charts-grid {
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  }
+}
+
 @media (max-width: 768px) {
   .header-content {
     flex-direction: column;
@@ -2038,6 +2720,7 @@ onUnmounted(() => {
 
   .header-actions {
     justify-content: center;
+    flex-wrap: wrap;
   }
 
   .stats-grid {
@@ -2047,6 +2730,7 @@ onUnmounted(() => {
 
   .charts-grid {
     padding: 0 20px 20px;
+    grid-template-columns: 1fr;
   }
 
   .tables-grid {
@@ -2055,9 +2739,11 @@ onUnmounted(() => {
 
   .filters-section {
     padding: 20px;
+    flex-direction: column;
+    gap: 20px;
   }
 
-  .period-buttons {
+  .period-buttons, .chart-type-buttons {
     flex-direction: column;
   }
 
@@ -2065,6 +2751,29 @@ onUnmounted(() => {
     right: auto;
     left: 0;
     min-width: 180px;
+  }
+
+  .ai-analysis-section {
+    padding: 20px;
+  }
+
+  .ai-panel {
+    padding: 20px;
+  }
+
+  .insights-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-metrics {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .performance-score {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
   }
 }
 </style>
