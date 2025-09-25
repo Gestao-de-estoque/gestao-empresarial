@@ -688,7 +688,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, onUnmounted, computed } from 'vue'
+import { ref, onMounted, watch, onUnmounted } from 'vue'
 import { reportsService } from '@/services/reportsService'
 import { aiAnalyticsService } from '@/services/aiAnalyticsService'
 import { advancedChartsService } from '@/services/advancedChartsService'

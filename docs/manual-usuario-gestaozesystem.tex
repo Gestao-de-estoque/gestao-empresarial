@@ -1,0 +1,1887 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[portuguese]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{tcolorbox}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{tikz}
+\usepackage{pagecolor}
+\usepackage{afterpage}
+
+
+% Configurações da página
+\geometry{
+    a4paper,
+    left=3cm,
+    right=2cm,
+    top=3cm,
+    bottom=2cm
+}
+
+% Configurações do header/footer
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\leftmark}
+\fancyhead[R]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% Cores personalizadas
+\definecolor{primary}{RGB}{59, 130, 246}
+\definecolor{secondary}{RGB}{107, 114, 128}
+\definecolor{success}{RGB}{34, 197, 94}
+\definecolor{warning}{RGB}{251, 146, 60}
+\definecolor{error}{RGB}{239, 68, 68}
+\definecolor{codebackground}{RGB}{248, 250, 252}
+\definecolor{lightblue}{RGB}{240, 248, 255}
+\definecolor{restaurantblue}{RGB}{41, 98, 255}
+\definecolor{restaurantgold}{RGB}{255, 193, 7}
+
+% Configurar fundo azul claro
+\pagecolor{lightblue}
+
+% Configuração de código
+\lstset{
+    basicstyle=\ttfamily\small,
+    backgroundcolor=\color{white},
+    frame=single,
+    framerule=1pt,
+    frameround=tttt,
+    rulecolor=\color{restaurantblue},
+    breaklines=true,
+    captionpos=b,
+    numbers=left,
+    numberstyle=\tiny\color{secondary},
+    keywordstyle=\color{restaurantblue}\bfseries,
+    commentstyle=\color{secondary}\itshape,
+    stringstyle=\color{success},
+    xleftmargin=10pt,
+    xrightmargin=10pt
+}
+
+% Configuração de hyperlinks
+\hypersetup{
+    colorlinks=true,
+    linkcolor=primary,
+    filecolor=primary,
+    urlcolor=primary,
+    pdftitle={Manual do Usuário - GestãoZe System},
+    pdfauthor={Sistema de Gestão de Estoque},
+    pdfsubject={Manual Técnico e Guia de Utilização}
+}
+
+% Caixas de destaque aprimoradas
+\newtcolorbox{infobox}[2][]{
+    colback=white,
+    colframe=restaurantblue,
+    fonttitle=\bfseries,
+    title=#2,
+    arc=8pt,
+    boxrule=2pt,
+    left=10pt,
+    right=10pt,
+    top=8pt,
+    bottom=8pt,
+    drop shadow={0.5mm}{0.5mm}{0.2mm}{black!20},
+    #1
+}
+
+\newtcolorbox{warningbox}[2][]{
+    colback=white,
+    colframe=warning,
+    fonttitle=\bfseries,
+    title=#2,
+    arc=8pt,
+    boxrule=2pt,
+    left=10pt,
+    right=10pt,
+    top=8pt,
+    bottom=8pt,
+    drop shadow={0.5mm}{0.5mm}{0.2mm}{black!20},
+    #1
+}
+
+\newtcolorbox{successbox}[2][]{
+    colback=white,
+    colframe=success,
+    fonttitle=\bfseries,
+    title=#2,
+    arc=8pt,
+    boxrule=2pt,
+    left=10pt,
+    right=10pt,
+    top=8pt,
+    bottom=8pt,
+    drop shadow={0.5mm}{0.5mm}{0.2mm}{black!20},
+    #1
+}
+
+% Capa personalizada
+\newcommand{\makecustomtitle}{%
+    \begin{titlepage}
+        \pagecolor{white}
+        \begin{tikzpicture}[remember picture,overlay]
+            % Fundo gradient azul
+            \fill[restaurantblue!20] (current page.south west) rectangle (current page.north east);
+
+            % Header decorativo
+            \fill[restaurantblue] (current page.north west) rectangle ([yshift=-3cm]current page.north east);
+
+            % Footer decorativo
+            \fill[restaurantblue] (current page.south west) rectangle ([yshift=2cm]current page.south east);
+
+            % Elementos decorativos dourados
+            \fill[restaurantgold] ([xshift=2cm,yshift=-1cm]current page.north west) circle (0.5cm);
+            \fill[restaurantgold] ([xshift=-2cm,yshift=-1cm]current page.north east) circle (0.5cm);
+            \fill[restaurantgold] ([xshift=2cm,yshift=1cm]current page.south west) circle (0.5cm);
+            \fill[restaurantgold] ([xshift=-2cm,yshift=1cm]current page.south east) circle (0.5cm);
+        \end{tikzpicture}
+
+        \vspace*{1cm}
+        \begin{center}
+            % Logo placeholder (pode ser substituído por imagem real)
+            \begin{tikzpicture}
+                \fill[white] (0,0) circle (2cm);
+                \fill[restaurantblue] (0,0) circle (1.8cm);
+                \node[white, font=\Huge\bfseries] at (0,0.3) {PdC};
+                \node[white, font=\large] at (0,-0.5) {RESTAURANT};
+            \end{tikzpicture}
+
+            \vspace{1cm}
+
+            {\color{restaurantblue}\Huge\textbf{PEDACINHO DO CÉU}}
+
+            \vspace{0.5cm}
+
+            {\color{restaurantblue}\Large\textit{Restaurante \& Gastronomia}}
+
+            \vspace{1.5cm}
+
+            {\color{restaurantblue}\LARGE\textbf{GESTÃOZE SYSTEM}}
+
+            \vspace{0.5cm}
+
+            {\color{secondary}\Large Sistema de Gestão de Estoque Inteligente}
+
+            \vspace{0.8cm}
+
+            {\color{restaurantblue}\large Manual Técnico e Guia de Utilização}
+
+            \vspace{2cm}
+
+            % Informações técnicas
+            \begin{tcolorbox}[
+                colback=white,
+                colframe=restaurantblue,
+                width=12cm,
+                arc=10pt,
+                boxrule=2pt
+            ]
+                \centering
+                {\color{restaurantblue}\large\textbf{Especificações Técnicas}}
+
+                \vspace{0.5cm}
+
+                \begin{tabular}{ll}
+                    \textbf{Frontend:} & Vue.js 3.5.21 + TypeScript \\
+                    \textbf{Backend:} & Supabase (PostgreSQL) \\
+                    \textbf{UI Framework:} & Components Customizados \\
+                    \textbf{Charts:} & Chart.js 4.5.0 \\
+                    \textbf{AI Integration:} & Google Gemini AI \\
+                    \textbf{Versão:} & 1.0.0 \\
+                \end{tabular}
+            \end{tcolorbox}
+
+            \vspace{1cm}
+
+            % Data e informações
+            {\color{restaurantblue}\large Desenvolvido especialmente para}
+
+            {\color{restaurantblue}\large\textbf{Gestão de Estoque em Restaurantes}}
+
+            \vspace{1cm}
+
+            {\color{secondary}\normalsize\today}
+
+        \end{center}
+
+        % Rodapé da capa
+        \vfill
+        \begin{center}
+            {\color{white}\large\textbf{Sistema Completo de Gestão}}
+
+            {\color{white}\normalsize Controle de Estoque | Análise Preditiva | Relatórios Avançados}
+        \end{center}
+
+    \end{titlepage}
+    \pagecolor{lightblue}
+}
+
+\begin{document}
+
+\makecustomtitle
+
+\newpage
+\tableofcontents
+\newpage
+
+% ========================================
+% SEÇÃO 1: INTRODUÇÃO
+% ========================================
+
+\section{Introdução}
+
+\subsection{Visão Geral do Sistema}
+
+O \textbf{GestãoZe System} é uma aplicação web moderna de gestão de estoque desenvolvida com tecnologias de ponta para atender às necessidades de pequenas e médias empresas do setor alimentício. O sistema combina funcionalidades tradicionais de controle de inventário com recursos avançados de inteligência artificial, análise preditiva e relatórios automatizados.
+
+\begin{infobox}{Características Principais}
+\begin{itemize}[noitemsep]
+    \item Interface moderna e responsiva construída em Vue.js 3
+    \item Backend robusco com Supabase (PostgreSQL)
+    \item Análise de dados avançada com inteligência artificial
+    \item Relatórios dinâmicos e exportação em múltiplos formatos
+    \item Sistema de autenticação e autorização seguro
+    \item Gerenciamento completo de produtos, fornecedores e cardápios
+    \item Análise preditiva de demanda e otimização de estoque
+\end{itemize}
+\end{infobox}
+
+\subsection{Tecnologias Utilizadas}
+
+\subsubsection{Frontend}
+\begin{itemize}
+    \item \textbf{Vue.js 3.5.21}: Framework JavaScript progressivo para construção da interface
+    \item \textbf{TypeScript 5.2.2}: Superset do JavaScript com tipagem estática
+    \item \textbf{Pinia 2.3.1}: Gerenciamento de estado reativo
+    \item \textbf{Vue Router 4.5.1}: Roteamento SPA (Single Page Application)
+    \item \textbf{Chart.js 4.5.0}: Biblioteca para gráficos e visualizações
+    \item \textbf{Lucide Vue Next}: Biblioteca de ícones moderna
+\end{itemize}
+
+\subsubsection{Backend e Banco de Dados}
+\begin{itemize}
+    \item \textbf{Supabase}: Backend-as-a-Service com PostgreSQL
+    \item \textbf{PostgreSQL}: Banco de dados relacional robusto
+    \item \textbf{Row Level Security (RLS)}: Segurança em nível de linha
+    \item \textbf{Real-time subscriptions}: Atualizações em tempo real
+\end{itemize}
+
+\subsubsection{Ferramentas Auxiliares}
+\begin{itemize}
+    \item \textbf{Vite}: Build tool e servidor de desenvolvimento
+    \item \textbf{Axios}: Cliente HTTP para requisições
+    \item \textbf{Date-fns}: Manipulação de datas
+    \item \textbf{jsPDF}: Geração de relatórios PDF
+    \item \textbf{html2canvas}: Captura de elementos HTML
+    \item \textbf{XLSX}: Manipulação de planilhas Excel
+\end{itemize}
+
+\subsection{Arquitetura do Sistema}
+
+\subsubsection{Padrão de Arquitetura}
+
+O sistema segue uma arquitetura de \textbf{Single Page Application (SPA)} baseada em componentes, implementando os seguintes padrões:
+
+\begin{itemize}
+    \item \textbf{Model-View-ViewModel (MVVM)}: Implementado através do Vue.js
+    \item \textbf{Service Layer Pattern}: Separação da lógica de negócio em serviços
+    \item \textbf{Store Pattern}: Gerenciamento de estado centralizado com Pinia
+    \item \textbf{Component-Based Architecture}: Interface modular e reutilizável
+\end{itemize}
+
+\subsubsection{Estrutura de Diretórios}
+
+\begin{lstlisting}[language=bash, caption=Estrutura do Projeto]
+src/
+├── components/          # Componentes reutilizáveis
+├── views/              # Páginas da aplicação
+├── services/           # Camada de serviços
+├── stores/             # Gerenciamento de estado (Pinia)
+├── router/             # Configuração de rotas
+├── config/             # Configurações (Supabase, etc.)
+├── types/              # Definições de tipos TypeScript
+├── utils/              # Funções utilitárias
+└── assets/             # Recursos estáticos
+\end{lstlisting}
+
+% ========================================
+% SEÇÃO 2: CONFIGURAÇÃO E INSTALAÇÃO
+% ========================================
+
+\section{Configuração e Instalação}
+
+\subsection{Requisitos do Sistema}
+
+\subsubsection{Requisitos de Software}
+\begin{itemize}
+    \item \textbf{Node.js}: Versão 18.x ou superior
+    \item \textbf{NPM}: Versão 9.x ou superior
+    \item \textbf{Navegador}: Chrome 90+, Firefox 88+, Safari 14+, Edge 90+
+\end{itemize}
+
+\subsubsection{Configuração do Ambiente}
+
+\begin{warningbox}{Variáveis de Ambiente Necessárias}
+Crie um arquivo \texttt{.env} na raiz do projeto com as seguintes variáveis:
+\begin{lstlisting}
+VITE_SUPABASE_URL=sua_url_do_supabase
+VITE_SUPABASE_ANON_KEY=sua_chave_anonima_supabase
+VITE_GEMINI_API_KEY=sua_chave_api_gemini
+\end{lstlisting}
+\end{warningbox}
+
+\subsection{Instalação}
+
+\begin{enumerate}
+    \item \textbf{Clone o repositório}:
+    \begin{lstlisting}[language=bash]
+git clone <repository_url>
+cd gestaozesystem-web
+    \end{lstlisting}
+
+    \item \textbf{Instale as dependências}:
+    \begin{lstlisting}[language=bash]
+npm install
+    \end{lstlisting}
+
+    \item \textbf{Configure as variáveis de ambiente}:
+    \begin{lstlisting}[language=bash]
+cp .env.example .env
+# Edite o arquivo .env com suas credenciais
+    \end{lstlisting}
+
+    \item \textbf{Execute em modo de desenvolvimento}:
+    \begin{lstlisting}[language=bash]
+npm run dev
+    \end{lstlisting}
+
+    \item \textbf{Build para produção}:
+    \begin{lstlisting}[language=bash]
+npm run build
+    \end{lstlisting}
+\end{enumerate}
+
+% ========================================
+% SEÇÃO 3: BANCO DE DADOS E SUPABASE
+% ========================================
+
+\section{Banco de Dados e Supabase}
+
+\subsection{Arquitetura do Banco de Dados}
+
+O sistema utiliza PostgreSQL através do Supabase, implementando uma estrutura relacional otimizada para gestão de estoque de estabelecimentos alimentícios.
+
+\subsubsection{Tabelas Principais}
+
+\begin{longtable}{|p{3cm}|p{4cm}|p{8cm}|}
+\hline
+\textbf{Tabela} & \textbf{Propósito} & \textbf{Campos Principais} \\
+\hline
+\endhead
+
+\texttt{admin\_users} & Usuários do sistema & id, email, password\_hash, role, created\_at \\
+\hline
+
+\texttt{produtos} & Produtos em estoque & id, nome, categoria, current\_stock, min\_stock, max\_stock, unit\_cost, sale\_price, supplier\_id \\
+\hline
+
+\texttt{categorias} & Categorias de produtos & id, nome, description, color\_tag \\
+\hline
+
+\texttt{movements} & Movimentações de estoque & id, product\_id, type, quantity, reason, user\_id, created\_at \\
+\hline
+
+\texttt{menu\_items} & Itens do cardápio & id, nome, category, price, description, is\_available \\
+\hline
+
+\texttt{menu\_item\_ingredientes} & Ingredientes dos pratos & id, menu\_item\_id, product\_id, quantity\_needed \\
+\hline
+
+\texttt{menu\_diario} & Cardápio diário & id, date, menu\_item\_id, quantity\_planned \\
+\hline
+
+\texttt{planejamento\_semanal} & Planejamento semanal & id, week\_start, menu\_item\_id, quantities\_by\_day \\
+\hline
+
+\texttt{suppliers} & Fornecedores & id, name, contact\_info, email, phone, address \\
+\hline
+
+\texttt{reports} & Relatórios salvos & id, name, type, data, user\_id, created\_at \\
+\hline
+
+\texttt{logs} & Logs do sistema & id, action, details, user\_id, ip\_address, created\_at \\
+\hline
+
+\texttt{app\_settings} & Configurações & key, value, description, updated\_at \\
+\hline
+
+\end{longtable}
+
+\subsubsection{Relacionamentos e Constraints}
+
+\begin{itemize}
+    \item \textbf{produtos.supplier\_id} $\rightarrow$ \textbf{suppliers.id}: Relacionamento many-to-one
+    \item \textbf{movements.product\_id} $\rightarrow$ \textbf{produtos.id}: Relacionamento many-to-one
+    \item \textbf{menu\_item\_ingredientes.product\_id} $\rightarrow$ \textbf{produtos.id}: Relacionamento many-to-one
+    \item \textbf{menu\_item\_ingredientes.menu\_item\_id} $\rightarrow$ \textbf{menu\_items.id}: Relacionamento many-to-one
+\end{itemize}
+
+\subsection{Configuração do Supabase}
+
+\subsubsection{Row Level Security (RLS)}
+
+O sistema implementa políticas de segurança em nível de linha para garantir o acesso controlado aos dados:
+
+\begin{lstlisting}[language=sql, caption=Exemplo de Política RLS]
+-- Política para tabela de produtos
+CREATE POLICY "Users can view products" ON produtos
+    FOR SELECT USING (auth.role() = 'authenticated');
+
+CREATE POLICY "Admin can insert products" ON produtos
+    FOR INSERT WITH CHECK (auth.jwt() ->> 'role' = 'admin');
+
+CREATE POLICY "Admin can update products" ON produtos
+    FOR UPDATE USING (auth.jwt() ->> 'role' = 'admin');
+\end{lstlisting}
+
+\subsubsection{Triggers e Funções}
+
+\begin{lstlisting}[language=sql, caption=Trigger para Atualização de Estoque]
+-- Função para atualizar estoque após movimentação
+CREATE OR REPLACE FUNCTION update_product_stock()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.type = 'entrada' THEN
+        UPDATE produtos
+        SET current_stock = current_stock + NEW.quantity
+        WHERE id = NEW.product_id;
+    ELSIF NEW.type = 'saida' THEN
+        UPDATE produtos
+        SET current_stock = current_stock - NEW.quantity
+        WHERE id = NEW.product_id;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger
+CREATE TRIGGER trigger_update_stock
+    AFTER INSERT ON movements
+    FOR EACH ROW
+    EXECUTE FUNCTION update_product_stock();
+\end{lstlisting}
+
+% ========================================
+% SEÇÃO 4: SISTEMA DE ROTAS
+% ========================================
+
+\section{Sistema de Rotas}
+
+\subsection{Configuração de Roteamento}
+
+O sistema utiliza Vue Router 4 com roteamento baseado em história (History Mode), proporcionando URLs limpas e navegação SPA otimizada.
+
+\subsubsection{Estrutura de Rotas}
+
+\begin{longtable}{|p{2.5cm}|p{3cm}|p{3cm}|p{6cm}|}
+\hline
+\textbf{Rota} & \textbf{Componente} & \textbf{Autenticação} & \textbf{Descrição} \\
+\hline
+\endhead
+
+\texttt{/} & - & - & Redirecionamento para /dashboard \\
+\hline
+
+\texttt{/login} & LoginView & Convidado & Página de autenticação \\
+\hline
+
+\texttt{/dashboard} & DashboardView & Obrigatória & Painel principal com métricas \\
+\hline
+
+\texttt{/inventory} & InventoryView & Obrigatória & Gestão de produtos e estoque \\
+\hline
+
+\texttt{/ai} & AIView & Obrigatória & Análises com inteligência artificial \\
+\hline
+
+\texttt{/reports} & ReportsView & Obrigatória & Relatórios e análises avançadas \\
+\hline
+
+\texttt{/suppliers} & SuppliersView & Obrigatória & Gestão de fornecedores \\
+\hline
+
+\texttt{/menu} & MenuView & Obrigatória & Gestão de cardápio e planejamento \\
+\hline
+
+\texttt{/logs} & LogsView & Obrigatória & Auditoria e logs do sistema \\
+\hline
+
+\texttt{/settings} & SettingsView & Obrigatória & Configurações do sistema \\
+\hline
+
+\texttt{/profile} & ProfileView & Obrigatória & Perfil do usuário \\
+\hline
+
+\texttt{/about} & AboutView & Obrigatória & Informações sobre o sistema \\
+\hline
+
+\end{longtable}
+
+\subsubsection{Guards de Navegação}
+
+O sistema implementa guards de navegação para controle de acesso:
+
+\begin{lstlisting}[language=typescript, caption=Guard de Autenticação]
+router.beforeEach(async (to) => {
+  const authStore = useAuthStore()
+
+  // Verificar sessão armazenada
+  const stored = localStorage.getItem('userSession')
+  if (stored && !authStore.user) {
+    authStore.user = JSON.parse(stored)
+  }
+
+  const isAuthenticated = authStore.isAuthenticated
+
+  if (to.meta.requiresAuth && !isAuthenticated) {
+    return '/login'
+  }
+
+  if (to.meta.requiresGuest && isAuthenticated) {
+    return '/dashboard'
+  }
+})
+\end{lstlisting}
+
+% ========================================
+% SEÇÃO 5: GUIA DE UTILIZAÇÃO - ROTAS
+% ========================================
+
+\section{Guia de Utilização das Rotas}
+
+\subsection{Rota /login - Autenticação}
+
+\subsubsection{Funcionalidades}
+\begin{itemize}
+    \item Autenticação de usuários via email e senha
+    \item Validação de credenciais com Supabase Auth
+    \item Persistência de sessão local
+    \item Redirecionamento automático após login
+\end{itemize}
+
+\subsubsection{Uso da Rota}
+\begin{enumerate}
+    \item Acesse \texttt{http://localhost:5173/login}
+    \item Insira credenciais válidas (email e senha)
+    \item Clique em "Entrar"
+    \item Sistema redireciona automaticamente para \texttt{/dashboard}
+\end{enumerate}
+
+\begin{warningbox}{Segurança}
+As senhas são criptografadas pelo Supabase Auth. Nunca são armazenadas em texto plano.
+\end{warningbox}
+
+\subsubsection{Serviços Utilizados}
+\begin{itemize}
+    \item \texttt{authService.ts}: Gerencia autenticação
+    \item \texttt{auth.ts} (store): Estado de autenticação global
+\end{itemize}
+
+\subsection{Rota /dashboard - Painel Principal}
+
+\subsubsection{Funcionalidades}
+\begin{itemize}
+    \item Visão geral de métricas importantes
+    \item Gráficos de vendas e movimentação
+    \item Alertas de estoque baixo
+    \item Resumo de produtos críticos
+    \item Cards informativos com KPIs
+\end{itemize}
+
+\subsubsection{Estrutura da Página}
+\begin{enumerate}
+    \item \textbf{Header}: Métricas rápidas (total de produtos, valor do estoque)
+    \item \textbf{Gráficos}: Visualizações de dados de vendas e movimentação
+    \item \textbf{Alertas}: Produtos com estoque baixo ou zerado
+    \item \textbf{Atividades Recentes}: Últimas movimentações
+\end{enumerate}
+
+\subsubsection{Serviços Utilizados}
+\begin{itemize}
+    \item \texttt{productService.ts}: Dados de produtos
+    \item \texttt{salesService.ts}: Dados de vendas
+    \item \texttt{reportsService.ts}: Métricas e análises
+\end{itemize}
+
+\subsection{Rota /inventory - Gestão de Estoque}
+
+\subsubsection{Funcionalidades Principais}
+\begin{itemize}
+    \item CRUD completo de produtos
+    \item Controle de movimentação (entrada/saída)
+    \item Gestão de categorias
+    \item Filtros e busca avançada
+    \item Importação/exportação de dados
+    \item Código de barras e QR Code
+\end{itemize}
+
+\subsubsection{Operações de Produto}
+
+\paragraph{Cadastro de Produto}
+\begin{enumerate}
+    \item Clique em "Novo Produto"
+    \item Preencha os campos obrigatórios:
+    \begin{itemize}
+        \item Nome do produto
+        \item Categoria
+        \item Estoque atual
+        \item Estoque mínimo
+        \item Preço de custo
+        \item Preço de venda
+        \item Fornecedor
+    \end{itemize}
+    \item Clique em "Salvar"
+\end{enumerate}
+
+\paragraph{Movimentação de Estoque}
+\begin{enumerate}
+    \item Selecione o produto na lista
+    \item Clique em "Movimentar"
+    \item Escolha o tipo (Entrada/Saída)
+    \item Informe a quantidade
+    \item Adicione observações (opcional)
+    \item Confirme a movimentação
+\end{enumerate}
+
+\subsubsection{Filtros e Busca}
+\begin{itemize}
+    \item \textbf{Busca por nome}: Campo de pesquisa em tempo real
+    \item \textbf{Filtro por categoria}: Dropdown com categorias disponíveis
+    \item \textbf{Filtro por status}: Estoque normal, baixo, zerado
+    \item \textbf{Filtro por fornecedor}: Produtos de fornecedor específico
+\end{itemize}
+
+\subsubsection{Serviços Utilizados}
+\begin{itemize}
+    \item \texttt{productService.ts}: Operações CRUD de produtos
+    \item \texttt{movementService.ts}: Controle de movimentações
+    \item \texttt{categoryService.ts}: Gestão de categorias
+\end{itemize}
+
+\subsection{Rota /suppliers - Gestão de Fornecedores}
+
+\subsubsection{Funcionalidades}
+\begin{itemize}
+    \item Cadastro completo de fornecedores
+    \item Controle de contatos e informações comerciais
+    \item Histórico de compras por fornecedor
+    \item Avaliação de performance
+    \item Gestão de contratos e prazos
+\end{itemize}
+
+\subsubsection{Cadastro de Fornecedor}
+\begin{enumerate}
+    \item Clique em "Novo Fornecedor"
+    \item Preencha as informações:
+    \begin{itemize}
+        \item Razão social
+        \item Nome fantasia
+        \item CNPJ/CPF
+        \item Endereço completo
+        \item Telefone e email
+        \item Informações bancárias
+        \item Condições de pagamento
+    \end{itemize}
+    \item Salve o cadastro
+\end{enumerate}
+
+\subsubsection{Serviços Utilizados}
+\begin{itemize}
+    \item \texttt{suppliersService.ts}: Gestão de fornecedores
+    \item \texttt{purchaseService.ts}: Histórico de compras
+\end{itemize}
+
+\subsection{Rota /menu - Gestão de Cardápio}
+
+\subsubsection{Funcionalidades}
+\begin{itemize}
+    \item Criação e gestão de pratos
+    \item Definição de ingredientes e quantidades
+    \item Cálculo automático de custos
+    \item Planejamento de cardápio diário/semanal
+    \item Análise de rentabilidade por prato
+    \item Controle de sazonalidade
+\end{itemize}
+
+\subsubsection{Cadastro de Prato}
+\begin{enumerate}
+    \item Acesse "Novo Prato"
+    \item Defina nome, categoria e preço
+    \item Adicione ingredientes:
+    \begin{itemize}
+        \item Selecione produto do estoque
+        \item Defina quantidade necessária
+        \item Sistema calcula custo automaticamente
+    \end{itemize}
+    \item Configure informações nutricionais (opcional)
+    \item Salve o prato
+\end{enumerate}
+
+\subsubsection{Planejamento de Cardápio}
+\begin{enumerate}
+    \item Selecione período (dia/semana/mês)
+    \item Escolha pratos disponíveis
+    \item Defina quantidades estimadas
+    \item Sistema verifica disponibilidade de ingredientes
+    \item Confirme o planejamento
+\end{enumerate}
+
+\subsubsection{Serviços Utilizados}
+\begin{itemize}
+    \item \texttt{menuService.ts}: Gestão de cardápio
+    \item \texttt{recipeService.ts}: Receitas e ingredientes
+    \item \texttt{planningService.ts}: Planejamento de produção
+\end{itemize}
+
+\subsection{Rota /reports - Relatórios e Análises}
+
+\subsubsection{Funcionalidades Avançadas}
+\begin{itemize}
+    \item Relatórios financeiros detalhados
+    \item Análises de vendas e margem
+    \item Relatórios de movimentação
+    \item Análise ABC de produtos
+    \item Relatórios de fornecedores
+    \item Análise preditiva com IA
+    \item Exportação em múltiplos formatos (PDF, Excel, CSV)
+\end{itemize}
+
+\subsubsection{Tipos de Relatórios}
+
+\paragraph{Relatórios Padrão}
+\begin{itemize}
+    \item \textbf{Estoque Atual}: Lista completa com valores
+    \item \textbf{Movimentações}: Histórico de entradas/saídas
+    \item \textbf{Produtos em Falta}: Itens com estoque zerado
+    \item \textbf{Estoque Baixo}: Produtos abaixo do mínimo
+    \item \textbf{Análise de Vendas}: Performance por período
+\end{itemize}
+
+\paragraph{Relatórios Avançados}
+\begin{itemize}
+    \item \textbf{Análise ABC}: Classificação por importância
+    \item \textbf{Giro de Estoque}: Rotatividade de produtos
+    \item \textbf{Margem de Contribuição}: Análise financeira
+    \item \textbf{Sazonalidade}: Padrões de consumo
+    \item \textbf{Previsão de Demanda}: IA preditiva
+\end{itemize}
+
+\subsubsection{Gráficos e Visualizações}
+\begin{itemize}
+    \item Gráficos de linha para tendências
+    \item Gráficos de barras para comparações
+    \item Gráficos de pizza para distribuições
+    \item Mapas de calor para correlações
+    \item Gráficos radar para análises multi-dimensionais
+\end{itemize}
+
+\subsubsection{Exportação de Dados}
+\begin{enumerate}
+    \item Selecione o relatório desejado
+    \item Configure filtros e período
+    \item Escolha formato de exportação:
+    \begin{itemize}
+        \item PDF com gráficos
+        \item Excel com dados e tabelas dinâmicas
+        \item CSV para análise externa
+        \item PowerBI para dashboards
+    \end{itemize}
+    \item Clique em "Exportar"
+\end{enumerate}
+
+\subsubsection{Serviços Utilizados}
+\begin{itemize}
+    \item \texttt{reportsService.ts}: Geração de relatórios
+    \item \texttt{advancedAnalyticsService.ts}: Análises estatísticas
+    \item \texttt{advancedChartsService.ts}: Visualizações avançadas
+    \item \texttt{advancedExportService.ts}: Exportação múltiplos formatos
+    \item \texttt{aiAnalyticsService.ts}: Análises com IA
+    \item \texttt{predictiveAnalyticsService.ts}: Análise preditiva
+\end{itemize}
+
+\subsection{Rota /ai - Inteligência Artificial}
+
+\subsubsection{Funcionalidades de IA}
+\begin{itemize}
+    \item Análise preditiva de demanda
+    \item Otimização de compras
+    \item Detecção de anomalias
+    \item Sugestões inteligentes de precificação
+    \item Análise de padrões de consumo
+    \item Insights automatizados
+    \item Chatbot para consultas
+\end{itemize}
+
+\subsubsection{Análise Preditiva}
+\begin{enumerate}
+    \item Selecione produtos para análise
+    \item Defina horizonte temporal
+    \item Configure parâmetros:
+    \begin{itemize}
+        \item Sazonalidade
+        \item Tendências históricas
+        \item Fatores externos
+    \end{itemize}
+    \item Execute análise
+    \item Visualize previsões e recomendações
+\end{enumerate}
+
+\subsubsection{Otimização de Estoque}
+O sistema analisa histórico e sugere:
+\begin{itemize}
+    \item Pontos ótimos de reposição
+    \item Quantidades econômicas de compra
+    \item Produtos com potencial de descontinuação
+    \item Oportunidades de cross-selling
+\end{itemize}
+
+\subsubsection{Serviços Utilizados}
+\begin{itemize}
+    \item \texttt{aiService.ts}: Integração com APIs de IA
+    \item \texttt{aiAnalyticsService.ts}: Análises inteligentes
+    \item \texttt{predictiveAnalyticsService.ts}: Modelos preditivos
+\end{itemize}
+
+\subsection{Rota /logs - Auditoria e Logs}
+
+\subsubsection{Funcionalidades de Auditoria}
+\begin{itemize}
+    \item Rastreamento completo de ações
+    \item Logs de acesso e segurança
+    \item Histórico de alterações
+    \item Análise de performance
+    \item Monitoramento de erros
+    \item Relatórios de conformidade
+\end{itemize}
+
+\subsubsection{Tipos de Log}
+\begin{itemize}
+    \item \textbf{Sistema}: Inicialização, erros, performance
+    \item \textbf{Usuário}: Login, logout, ações realizadas
+    \item \textbf{Estoque}: Movimentações, alterações
+    \item \textbf{Segurança}: Tentativas de acesso, falhas
+    \item \textbf{API}: Requisições, respostas, erros
+\end{itemize}
+
+\subsubsection{Filtros de Log}
+\begin{itemize}
+    \item Por usuário
+    \item Por período
+    \item Por tipo de ação
+    \item Por nível de severidade
+    \item Por módulo do sistema
+\end{itemize}
+
+\subsubsection{Serviços Utilizados}
+\begin{itemize}
+    \item \texttt{logsService.ts}: Gestão de logs
+    \item \texttt{auditService.ts}: Trilha de auditoria
+\end{itemize}
+
+\subsection{Rota /settings - Configurações}
+
+\subsubsection{Configurações Disponíveis}
+\begin{itemize}
+    \item Parâmetros gerais do sistema
+    \item Configurações de estoque (pontos de reposição)
+    \item Configurações financeiras (moedas, impostos)
+    \item Configurações de notificação
+    \item Integrações externas
+    \item Backup e restauração
+\end{itemize}
+
+\subsubsection{Categorias de Configuração}
+
+\paragraph{Sistema Geral}
+\begin{itemize}
+    \item Nome da empresa
+    \item Logo e identidade visual
+    \item Fuso horário
+    \item Idioma padrão
+    \item Formato de data/hora
+\end{itemize}
+
+\paragraph{Estoque}
+\begin{itemize}
+    \item Política de estoque mínimo global
+    \item Configurações de alerta
+    \item Métodos de valoração (FIFO, LIFO, Médio)
+    \item Categorias padrão
+\end{itemize}
+
+\paragraph{Financeiro}
+\begin{itemize}
+    \item Moeda padrão
+    \item Configurações de impostos
+    \item Margem de lucro padrão
+    \item Formas de pagamento
+\end{itemize}
+
+\subsubsection{Serviços Utilizados}
+\begin{itemize}
+    \item \texttt{settingsService.ts}: Gestão de configurações
+    \item \texttt{configService.ts}: Parâmetros do sistema
+\end{itemize}
+
+\subsection{Rota /profile - Perfil do Usuário}
+
+\subsubsection{Funcionalidades}
+\begin{itemize}
+    \item Edição de dados pessoais
+    \item Alteração de senha
+    \item Configurações de notificação
+    \item Histórico de atividades
+    \item Preferências de interface
+    \item Configurações de segurança (2FA)
+\end{itemize}
+
+\subsubsection{Configurações de Perfil}
+\begin{itemize}
+    \item Nome completo
+    \item Email de contato
+    \item Telefone
+    \item Foto de perfil
+    \item Cargo/função
+    \item Departamento
+\end{itemize}
+
+\subsubsection{Segurança}
+\begin{itemize}
+    \item Alteração de senha
+    \item Autenticação de dois fatores
+    \item Sessões ativas
+    \item Dispositivos autorizados
+\end{itemize}
+
+\subsubsection{Serviços Utilizados}
+\begin{itemize}
+    \item \texttt{profileService.ts}: Gestão de perfil
+    \item \texttt{authService.ts}: Segurança e autenticação
+\end{itemize}
+
+% ========================================
+% SEÇÃO 6: SERVIÇOS E INTEGRAÇÃO
+% ========================================
+
+\section{Arquitetura de Serviços}
+
+\subsection{Camada de Serviços}
+
+O sistema implementa uma arquitetura em camadas com serviços especializados para cada domínio de negócio, garantindo separação de responsabilidades e facilidade de manutenção.
+
+\subsubsection{Estrutura de Serviços}
+
+\begin{longtable}{|p{4cm}|p{10cm}|}
+\hline
+\textbf{Serviço} & \textbf{Responsabilidades} \\
+\hline
+\endhead
+
+\texttt{authService} & Autenticação, autorização, gestão de sessões \\
+\hline
+
+\texttt{productService} & CRUD de produtos, controle de estoque, categorias \\
+\hline
+
+\texttt{suppliersService} & Gestão de fornecedores, contratos, avaliações \\
+\hline
+
+\texttt{menuService} & Cardápio, receitas, ingredientes, planejamento \\
+\hline
+
+\texttt{salesService} & Vendas, faturamento, análise de performance \\
+\hline
+
+\texttt{reportsService} & Relatórios padrão, métricas, KPIs \\
+\hline
+
+\texttt{advancedAnalyticsService} & Análises estatísticas avançadas, correlações \\
+\hline
+
+\texttt{aiAnalyticsService} & Análises com inteligência artificial \\
+\hline
+
+\texttt{predictiveAnalyticsService} & Modelos preditivos, forecasting \\
+\hline
+
+\texttt{advancedChartsService} & Visualizações avançadas, gráficos customizados \\
+\hline
+
+\texttt{advancedExportService} & Exportação em múltiplos formatos \\
+\hline
+
+\texttt{logsService} & Auditoria, logs, rastreamento \\
+\hline
+
+\texttt{settingsService} & Configurações do sistema \\
+\hline
+
+\texttt{profileService} & Perfil do usuário, preferências \\
+\hline
+
+\end{longtable}
+
+\subsection{Padrões de Implementação}
+
+\subsubsection{Service Layer Pattern}
+
+Cada serviço segue o padrão Service Layer, implementando:
+
+\begin{lstlisting}[language=typescript, caption=Estrutura Base de Serviço]
+export class BaseService {
+  protected supabase = supabase
+
+  // Operações CRUD padrão
+  async getAll(): Promise<T[]>
+  async getById(id: string): Promise<T>
+  async create(data: Partial<T>): Promise<T>
+  async update(id: string, data: Partial<T>): Promise<T>
+  async delete(id: string): Promise<void>
+
+  // Operações específicas do domínio
+  // ...
+}
+\end{lstlisting}
+
+\subsubsection{Error Handling}
+
+Sistema padronizado de tratamento de erros:
+
+\begin{lstlisting}[language=typescript, caption=Tratamento de Erros]
+export interface ServiceError {
+  code: string
+  message: string
+  details?: any
+  timestamp: Date
+}
+
+export class ServiceException extends Error {
+  constructor(
+    public code: string,
+    public message: string,
+    public details?: any
+  ) {
+    super(message)
+  }
+}
+\end{lstlisting}
+
+\subsection{Integração com Supabase}
+
+\subsubsection{Cliente Supabase}
+
+\begin{lstlisting}[language=typescript, caption=Configuração Supabase]
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: false
+  }
+})
+\end{lstlisting}
+
+\subsubsection{Operações de Banco de Dados}
+
+\begin{lstlisting}[language=typescript, caption=Exemplo de Operações CRUD]
+export class ProductService {
+  async getAllProducts(): Promise<Product[]> {
+    const { data, error } = await supabase
+      .from('produtos')
+      .select(`
+        *,
+        categoria:categorias(*),
+        fornecedor:suppliers(*)
+      `)
+      .order('nome')
+
+    if (error) throw new ServiceException('DB_ERROR', error.message)
+    return data
+  }
+
+  async createProduct(product: Partial<Product>): Promise<Product> {
+    const { data, error } = await supabase
+      .from('produtos')
+      .insert(product)
+      .select()
+      .single()
+
+    if (error) throw new ServiceException('CREATE_ERROR', error.message)
+    return data
+  }
+}
+\end{lstlisting}
+
+% ========================================
+% SEÇÃO 7: FUNCIONALIDADES AVANÇADAS
+% ========================================
+
+\section{Funcionalidades Avançadas}
+
+\subsection{Sistema de Analytics Avançado}
+
+\subsubsection{Análises Estatísticas}
+
+O sistema implementa análises estatísticas robustas através do \texttt{advancedAnalyticsService}:
+
+\begin{itemize}
+    \item \textbf{Estatísticas Descritivas}: Média, mediana, moda, desvio padrão
+    \item \textbf{Análise de Tendências}: Regressão linear, correlações
+    \item \textbf{Detecção de Sazonalidade}: Padrões cíclicos, autocorrelação
+    \item \textbf{Forecasting}: Previsão usando suavização exponencial
+    \item \textbf{Detecção de Anomalias}: Baseada em Z-score e desvios
+    \item \textbf{Análise de Distribuição}: Histogramas, bondade de ajuste
+\end{itemize}
+
+\subsubsection{Business Intelligence}
+
+Funcionalidades de BI integradas:
+
+\begin{lstlisting}[language=typescript, caption=KPIs Automatizados]
+interface BusinessIntelligence {
+  kpis: {
+    revenue: {
+      current: number
+      growth: number
+      target: number
+      achievement: number
+    }
+    efficiency: {
+      inventoryTurnover: number
+      stockoutRate: number
+      fillRate: number
+      cycleTime: number
+    }
+    quality: {
+      accuracyRate: number
+      errorRate: number
+      customerSatisfaction: number
+    }
+  }
+  benchmarks: {
+    industry: IndustryBenchmark
+    internal: InternalBenchmark
+  }
+  recommendations: Recommendation[]
+}
+\end{lstlisting}
+
+\subsection{Inteligência Artificial}
+
+\subsubsection{Análise Preditiva}
+
+O \texttt{predictiveAnalyticsService} implementa modelos preditivos:
+
+\begin{itemize}
+    \item \textbf{Previsão de Demanda}: Modelos ARIMA e suavização exponencial
+    \item \textbf{Otimização de Estoque}: Cálculo de pontos de reposição ótimos
+    \item \textbf{Análise de Churn}: Identificação de produtos em declínio
+    \item \textbf{Segmentação ABC}: Classificação automática por importância
+    \item \textbf{Análise de Cestas}: Market basket analysis
+\end{itemize}
+
+\subsubsection{Integração com APIs de IA}
+
+\begin{lstlisting}[language=typescript, caption=Integração Gemini AI]
+export class AIAnalyticsService {
+  private readonly GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY
+
+  async generateInsights(data: any[]): Promise<string[]> {
+    const prompt = this.buildAnalysisPrompt(data)
+
+    const response = await this.callGeminiAPI(prompt)
+    return this.parseInsights(response)
+  }
+
+  private async callGeminiAPI(prompt: string) {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${this.GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }]
+        })
+      }
+    )
+
+    return response.json()
+  }
+}
+\end{lstlisting}
+
+\subsection{Sistema de Relatórios Avançados}
+
+\subsubsection{Exportação Multi-Formato}
+
+O \texttt{advancedExportService} suporta múltiplos formatos:
+
+\begin{itemize}
+    \item \textbf{PDF}: Relatórios formatados com gráficos
+    \item \textbf{Excel}: Planilhas com dados e tabelas dinâmicas
+    \item \textbf{CSV}: Dados estruturados para análise externa
+    \item \textbf{PowerBI}: Datasets otimizados para dashboards
+    \item \textbf{Imagem}: Screenshots de dashboards
+\end{itemize}
+
+\subsubsection{Customização de Relatórios}
+
+\begin{lstlisting}[language=typescript, caption=Opções de Exportação]
+interface ExportOptions {
+  format: 'pdf' | 'excel' | 'csv' | 'json' | 'powerbi' | 'image'
+  includeAI: boolean
+  includePredictive: boolean
+  includeCharts: boolean
+  includeRawData: boolean
+  customSections?: string[]
+  branding?: {
+    logo?: string
+    companyName?: string
+    colors?: {
+      primary: string
+      secondary: string
+    }
+  }
+}
+\end{lstlisting}
+
+\subsection{Visualizações Avançadas}
+
+\subsubsection{Tipos de Gráfico Suportados}
+
+O \texttt{advancedChartsService} implementa visualizações sofisticadas:
+
+\begin{itemize}
+    \item \textbf{Line Charts}: Tendências temporais
+    \item \textbf{Bar/Column Charts}: Comparações categóricas
+    \item \textbf{Pie/Doughnut Charts}: Distribuições percentuais
+    \item \textbf{Radar Charts}: Análises multi-dimensionais
+    \item \textbf{Scatter Plots}: Correlações entre variáveis
+    \item \textbf{Bubble Charts}: Três dimensões de dados
+    \item \textbf{Heatmaps}: Matrizes de correlação
+    \item \textbf{Gauge Charts}: Indicadores de performance
+\end{itemize}
+
+\subsubsection{Configuração de Gráficos}
+
+\begin{lstlisting}[language=typescript, caption=Configuração de Gráfico]
+interface AdvancedChartData {
+  type: 'line' | 'bar' | 'doughnut' | 'radar' | 'bubble' | 'scatter' | 'polarArea' | 'heatmap'
+  data: ChartData
+  options: ChartOptions
+  config?: ChartConfiguration
+}
+
+export class AdvancedChartsService {
+  generateSalesPerformanceChart(
+    salesData: any[],
+    period: string
+  ): AdvancedChartData {
+    const labels = salesData.map(item => item.date)
+    const sales = salesData.map(item => item.total)
+    const movingAverage = this.calculateMovingAverage(sales, 7)
+
+    return {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Vendas Diárias',
+            data: sales,
+            borderColor: '#667eea',
+            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+            fill: true,
+            tension: 0.4
+          },
+          {
+            label: 'Média Móvel (7 dias)',
+            data: movingAverage,
+            borderColor: '#f093fb',
+            backgroundColor: 'transparent',
+            borderWidth: 2,
+            borderDash: [5, 5],
+            pointRadius: 0
+          }
+        ]
+      },
+      options: this.getAdvancedLineOptions('Vendas por Período', 'R$')
+    }
+  }
+}
+\end{lstlisting}
+
+% ========================================
+% SEÇÃO 8: SEGURANÇA E PERFORMANCE
+% ========================================
+
+\section{Segurança e Performance}
+
+\subsection{Medidas de Segurança}
+
+\subsubsection{Autenticação e Autorização}
+
+\begin{itemize}
+    \item \textbf{Supabase Auth}: Sistema robusto de autenticação
+    \item \textbf{JWT Tokens}: Tokens seguros com expiração automática
+    \item \textbf{Row Level Security}: Controle granular de acesso
+    \item \textbf{HTTPS Only}: Comunicação criptografada
+    \item \textbf{Session Management}: Controle de sessões ativas
+\end{itemize}
+
+\subsubsection{Proteção de Dados}
+
+\begin{itemize}
+    \item \textbf{Criptografia}: Senhas hasheadas com bcrypt
+    \item \textbf{Sanitização}: Prevenção de SQL injection
+    \item \textbf{Validação}: Validação rigorosa de inputs
+    \item \textbf{Auditoria}: Log completo de ações
+    \item \textbf{Backup}: Backup automático de dados
+\end{itemize}
+
+\subsubsection{Políticas RLS}
+
+\begin{lstlisting}[language=sql, caption=Políticas de Segurança]
+-- Política para acesso a produtos
+CREATE POLICY "authenticated_users_products" ON produtos
+    FOR ALL USING (auth.role() = 'authenticated');
+
+-- Política para logs (somente leitura)
+CREATE POLICY "read_logs" ON logs
+    FOR SELECT USING (auth.role() = 'authenticated');
+
+-- Política para configurações (somente admin)
+CREATE POLICY "admin_settings" ON app_settings
+    FOR ALL USING (auth.jwt() ->> 'role' = 'admin');
+\end{lstlisting}
+
+\subsection{Otimizações de Performance}
+
+\subsubsection{Frontend}
+
+\begin{itemize}
+    \item \textbf{Code Splitting}: Carregamento sob demanda
+    \item \textbf{Lazy Loading}: Componentes carregados quando necessário
+    \item \textbf{Virtual Scrolling}: Listas grandes otimizadas
+    \item \textbf{Caching}: Cache inteligente de dados
+    \item \textbf{Compression}: Assets comprimidos
+\end{itemize}
+
+\subsubsection{Backend/Database}
+
+\begin{itemize}
+    \item \textbf{Indexação}: Índices otimizados para consultas
+    \item \textbf{Connection Pooling}: Pool de conexões eficiente
+    \item \textbf{Query Optimization}: Consultas SQL otimizadas
+    \item \textbf{Caching Strategy}: Cache de resultados frequentes
+    \item \textbf{Real-time Subscriptions}: Atualizações em tempo real
+\end{itemize}
+
+\subsubsection{Monitoramento}
+
+\begin{lstlisting}[language=typescript, caption=Monitoramento de Performance]
+export class PerformanceMonitor {
+  static measureExecutionTime<T>(
+    fn: () => Promise<T>,
+    operation: string
+  ): Promise<T> {
+    const start = performance.now()
+
+    return fn().finally(() => {
+      const end = performance.now()
+      const duration = end - start
+
+      console.log(`${operation} took ${duration.toFixed(2)}ms`)
+
+      // Log performance metrics
+      this.logMetric({
+        operation,
+        duration,
+        timestamp: new Date()
+      })
+    })
+  }
+}
+\end{lstlisting}
+
+% ========================================
+% SEÇÃO 9: DEPLOYMENT E MANUTENÇÃO
+% ========================================
+
+\section{Deployment e Manutenção}
+
+\subsection{Processo de Build}
+
+\subsubsection{Scripts de Build}
+
+\begin{lstlisting}[language=json, caption=Package.json Scripts]
+{
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc && vite build",
+    "preview": "vite preview",
+    "lint": "eslint src --ext .vue,.ts,.tsx",
+    "type-check": "vue-tsc --noEmit"
+  }
+}
+\end{lstlisting}
+
+\subsubsection{Configuração de Build}
+
+\begin{lstlisting}[language=typescript, caption=Vite Config]
+import { defineConfig } from 'vite'
+import vue from '@vitejs/plugin-vue'
+import { resolve } from 'path'
+
+export default defineConfig({
+  plugins: [vue()],
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, 'src')
+    }
+  },
+  build: {
+    target: 'es2015',
+    outDir: 'dist',
+    assetsDir: 'assets',
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['vue', 'vue-router', 'pinia'],
+          charts: ['chart.js', 'vue-chartjs'],
+          utils: ['axios', 'date-fns']
+        }
+      }
+    }
+  }
+})
+\end{lstlisting}
+
+\subsection{Deployment em Produção}
+
+\subsubsection{Vercel (Recomendado)}
+
+\begin{enumerate}
+    \item Configure as variáveis de ambiente no painel da Vercel
+    \item Conecte o repositório GitHub
+    \item A build será executada automaticamente
+    \item Configure domínio personalizado (opcional)
+\end{enumerate}
+
+\begin{lstlisting}[language=json, caption=vercel.json]
+{
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ]
+}
+\end{lstlisting}
+
+\subsubsection{Netlify}
+
+\begin{lstlisting}[language=toml, caption=netlify.toml]
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[build.environment]
+  NODE_VERSION = "18"
+\end{lstlisting}
+
+\subsection{Monitoramento e Logs}
+
+\subsubsection{Monitoramento de Aplicação}
+
+\begin{itemize}
+    \item \textbf{Error Tracking}: Sentry ou similar
+    \item \textbf{Performance Monitoring}: Web Vitals
+    \item \textbf{Analytics}: Google Analytics 4
+    \item \textbf{Uptime Monitoring}: Pingdom ou similar
+\end{itemize}
+
+\subsubsection{Logs Estruturados}
+
+\begin{lstlisting}[language=typescript, caption=Sistema de Logs]
+export enum LogLevel {
+  DEBUG = 0,
+  INFO = 1,
+  WARN = 2,
+  ERROR = 3
+}
+
+export interface LogEntry {
+  timestamp: Date
+  level: LogLevel
+  message: string
+  metadata?: any
+  userId?: string
+  sessionId?: string
+}
+
+export class Logger {
+  static log(level: LogLevel, message: string, metadata?: any) {
+    const entry: LogEntry = {
+      timestamp: new Date(),
+      level,
+      message,
+      metadata,
+      userId: this.getCurrentUserId(),
+      sessionId: this.getSessionId()
+    }
+
+    // Send to logging service
+    this.sendToSupabase(entry)
+  }
+}
+\end{lstlisting>
+
+\subsection{Backup e Recuperação}
+
+\subsubsection{Estratégia de Backup}
+
+\begin{itemize}
+    \item \textbf{Backup Diário}: Supabase automático
+    \item \textbf{Backup Semanal}: Export completo de dados
+    \item \textbf{Point-in-time Recovery}: Até 7 dias
+    \item \textbf{Backup de Código}: Git com múltiplos remotes
+\end{itemize}
+
+\subsubsection{Procedimento de Recuperação}
+
+\begin{enumerate}
+    \item Identificar ponto de falha
+    \item Selecionar backup apropriado
+    \item Restaurar via Supabase Dashboard
+    \item Verificar integridade dos dados
+    \item Executar testes de validação
+    \item Comunicar usuários sobre restauração
+\end{enumerate}
+
+% ========================================
+% SEÇÃO 10: TROUBLESHOOTING
+% ========================================
+
+\section{Troubleshooting e FAQ}
+
+\subsection{Problemas Comuns}
+
+\subsubsection{Erros de Autenticação}
+
+\begin{warningbox}{Erro: "Invalid credentials"}
+\textbf{Causa}: Credenciais incorretas ou sessão expirada \\
+\textbf{Solução}:
+\begin{itemize}
+    \item Verificar email/senha
+    \item Limpar cache do navegador
+    \item Verificar configurações Supabase
+    \item Renovar tokens de sessão
+\end{itemize}
+\end{warningbox}
+
+\subsubsection{Problemas de Performance}
+
+\begin{warningbox}{Lentidão na Aplicação}
+\textbf{Causas Possíveis}:
+\begin{itemize}
+    \item Consultas não otimizadas
+    \item Cache desatualizado
+    \item Muitos dados na memória
+    \item Conexão lenta com BD
+\end{itemize}
+\textbf{Soluções}:
+\begin{itemize}
+    \item Otimizar queries SQL
+    \item Implementar paginação
+    \item Usar lazy loading
+    \item Verificar índices do BD
+\end{itemize}
+\end{warningbox}
+
+\subsubsection{Erros de Build}
+
+\begin{warningbox}{TypeScript Compilation Errors}
+\textbf{Comando de Diagnóstico}: \texttt{npm run type-check} \\
+\textbf{Soluções Comuns}:
+\begin{itemize}
+    \item Verificar tipos importados
+    \item Atualizar dependências
+    \item Limpar cache: \texttt{rm -rf node\_modules package-lock.json}
+    \item Reinstalar: \texttt{npm install}
+\end{itemize}
+\end{warningbox}
+
+\subsection{Comandos de Diagnóstico}
+
+\subsubsection{Verificação de Sistema}
+
+\begin{lstlisting}[language=bash, caption=Scripts de Diagnóstico]
+# Verificar versões
+node --version
+npm --version
+
+# Verificar dependências
+npm ls
+
+# Verificar tipos TypeScript
+npm run type-check
+
+# Verificar lint
+npm run lint
+
+# Teste de build
+npm run build
+
+# Verificar configuração Supabase
+npx supabase status
+\end{lstlisting}
+
+\subsubsection{Logs de Debug}
+
+\begin{lstlisting}[language=typescript, caption=Debug Mode]
+// Ativar modo debug
+localStorage.setItem('DEBUG_MODE', 'true')
+
+// Debug de queries Supabase
+const { data, error } = await supabase
+  .from('produtos')
+  .select('*')
+  .explain({ analyze: true, verbose: true })
+\end{lstlisting}
+
+\subsection{FAQ - Perguntas Frequentes}
+
+\subsubsection{Funcionalidades}
+
+\begin{itemize}
+    \item \textbf{P}: Como importar produtos em massa? \\
+    \textbf{R}: Use a funcionalidade de importação Excel na rota /inventory
+
+    \item \textbf{P}: É possível customizar relatórios? \\
+    \textbf{R}: Sim, na rota /reports há opções avançadas de customização
+
+    \item \textbf{P}: Como configurar alertas de estoque baixo? \\
+    \textbf{R}: Configure limites mínimos em /settings e ative notificações
+\end{itemize}
+
+\subsubsection{Técnicas}
+
+\begin{itemize}
+    \item \textbf{P}: Como fazer backup dos dados? \\
+    \textbf{R}: Use o painel Supabase ou a exportação automática em /reports
+
+    \item \textbf{P}: É possível integrar com outros sistemas? \\
+    \textbf{R}: Sim, através da API REST do Supabase ou webhooks customizados
+
+    \item \textbf{P}: Como otimizar performance para muitos produtos? \\
+    \textbf{R}: Use filtros, paginação e índices adequados no banco
+\end{itemize}
+
+% ========================================
+% SEÇÃO 11: API e INTEGRAÇÕES
+% ========================================
+
+\section{API e Integrações}
+
+\subsection{API Supabase}
+
+\subsubsection{Endpoints Principais}
+
+O Supabase gera automaticamente uma API REST para todas as tabelas:
+
+\begin{lstlisting}[language=bash, caption=Exemplos de Endpoints]
+# Produtos
+GET    /rest/v1/produtos
+POST   /rest/v1/produtos
+PATCH  /rest/v1/produtos?id=eq.{id}
+DELETE /rest/v1/produtos?id=eq.{id}
+
+# Movimentações
+GET    /rest/v1/movements
+POST   /rest/v1/movements
+
+# Relatórios
+GET    /rest/v1/reports
+POST   /rest/v1/reports
+\end{lstlisting}
+
+\subsubsection{Autenticação API}
+
+\begin{lstlisting}[language=bash, caption=Headers de Autenticação]
+curl -X GET 'https://seu-projeto.supabase.co/rest/v1/produtos' \
+  -H "apikey: SUA_ANON_KEY" \
+  -H "Authorization: Bearer SEU_JWT_TOKEN"
+\end{lstlisting}
+
+\subsection{Integrações Externas}
+
+\subsubsection{Google Gemini AI}
+
+\begin{lstlisting}[language=typescript, caption=Integração Gemini]
+export class AIService {
+  private readonly apiKey = import.meta.env.VITE_GEMINI_API_KEY
+  private readonly baseUrl = 'https://generativelanguage.googleapis.com/v1beta'
+
+  async generateContent(prompt: string): Promise<string> {
+    const response = await fetch(
+      `${this.baseUrl}/models/gemini-pro:generateContent?key=${this.apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }]
+        })
+      }
+    )
+
+    const data = await response.json()
+    return data.candidates[0].content.parts[0].text
+  }
+}
+\end{lstlisting}
+
+\subsubsection{Webhooks}
+
+Configurar webhooks para eventos importantes:
+
+\begin{lstlisting}[language=sql, caption=Webhook para Estoque Baixo]
+-- Função para webhook
+CREATE OR REPLACE FUNCTION notify_low_stock()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.current_stock <= NEW.min_stock THEN
+    PERFORM net.http_post(
+      url := 'https://seu-webhook-url.com/low-stock',
+      headers := '{"Content-Type": "application/json"}'::jsonb,
+      body := json_build_object(
+        'product_id', NEW.id,
+        'product_name', NEW.nome,
+        'current_stock', NEW.current_stock,
+        'min_stock', NEW.min_stock
+      )::jsonb
+    );
+  END IF;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger
+CREATE TRIGGER low_stock_webhook
+  AFTER UPDATE OF current_stock ON produtos
+  FOR EACH ROW
+  EXECUTE FUNCTION notify_low_stock();
+\end{lstlisting}
+
+% ========================================
+% SEÇÃO 12: CONCLUSÃO
+% ========================================
+
+\section{Conclusão}
+
+\subsection{Resumo das Capacidades}
+
+O \textbf{GestãoZe System} representa uma solução completa e moderna para gestão de estoque, combinando:
+
+\begin{successbox}{Pontos Fortes do Sistema}
+\begin{itemize}
+    \item \textbf{Arquitetura Moderna}: Vue.js 3 com TypeScript
+    \item \textbf{Backend Robusto}: Supabase com PostgreSQL
+    \item \textbf{Análises Avançadas}: IA e análise preditiva
+    \item \textbf{Interface Intuitiva}: UX otimizada para produtividade
+    \item \textbf{Segurança Robusta}: RLS e autenticação segura
+    \item \textbf{Escalabilidade}: Arquitetura preparada para crescimento
+    \item \textbf{Relatórios Ricos}: Múltiplos formatos de exportação
+    \item \textbf{Integração Flexível}: APIs e webhooks
+\end{itemize}
+\end{successbox}
+
+\subsection{Roadmap de Desenvolvimento}
+
+\subsubsection{Próximas Funcionalidades}
+\begin{itemize}
+    \item \textbf{Mobile App}: Aplicativo nativo com React Native
+    \item \textbf{E-commerce Integration}: Integração com plataformas de venda
+    \item \textbf{Advanced AI}: Modelos de deep learning customizados
+    \item \textbf{Multi-tenancy}: Suporte para múltiplas empresas
+    \item \textbf{IoT Integration}: Sensores de estoque automáticos
+    \item \textbf{Blockchain}: Rastreabilidade de produtos
+\end{itemize}
+
+\subsection{Suporte e Comunidade}
+
+\subsubsection{Recursos de Apoio}
+\begin{itemize}
+    \item \textbf{Documentação}: Sempre atualizada
+    \item \textbf{Issues GitHub}: Relatório de bugs e sugestões
+    \item \textbf{Comunidade}: Fórum de discussão
+    \item \textbf{Tutoriais}: Vídeos e guias passo a passo
+    \item \textbf{API Reference}: Documentação completa da API
+\end{itemize}
+
+\subsubsection{Contribuição}
+O sistema é desenvolvido seguindo boas práticas de código aberto:
+\begin{itemize}
+    \item \textbf{Code Reviews}: Revisão rigorosa de código
+    \item \textbf{Testing}: Cobertura de testes abrangente
+    \item \textbf{CI/CD}: Pipeline automatizado de deployment
+    \item \textbf{Documentation}: Documentação viva e atualizada
+\end{itemize}
+
+\vspace{2cm}
+
+\begin{center}
+\rule{10cm}{0.4pt} \\
+\vspace{0.5cm}
+\textbf{\large{GestãoZe System v1.0.0}} \\
+\textit{Sistema de Gestão de Estoque Inteligente} \\
+\vspace{0.2cm}
+Desenvolvido com Vue.js 3, TypeScript e Supabase \\
+\textcolor{primary}{\href{https://gestao.restpedacinhodoceu.com.br}{gestao.restpedacinhodoceu.com.br}}
+\end{center}
+
+\end{document}

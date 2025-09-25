@@ -334,6 +334,7 @@ export class PredictiveAnalyticsService {
   }
 
   // Métodos auxiliares
+  /*
   private calculateMovingAverage(data: number[], window: number): number[] {
     const result: number[] = []
     for (let i = 0; i < data.length; i++) {
@@ -346,6 +347,7 @@ export class PredictiveAnalyticsService {
     }
     return result
   }
+  */
 
   private calculateTrend(values: number[]): number {
     if (values.length < 2) return 0
@@ -407,10 +409,12 @@ export class PredictiveAnalyticsService {
     }
   }
 
+  /*
   private analyzeMonthlyPattern(_data: any[]): any {
     // Implementação simplificada para análise mensal
     return { trend: 'stable' }
   }
+  */
 
   private generateMockDemandHistory(product: any): number[] {
     // Simular histórico de demanda baseado no produto
