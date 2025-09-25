@@ -1,4 +1,5 @@
 1. Adicionar foto no ADM
 2. Em configuracoes, configuracoes, colocar uma funcionalidade de baixar o manual que esta no arquivo doc/manual.pdf
 3. Criar uma rota de documentacao do sistema, onde aparece as funcionalidades do sistema web, o que cada rota faz, as requisoes da API, etc. Tudo de forma completa e profissional, para desenvolvedores olharem o sistema.
-4. Houve um erro ao fazer o deploy na vercel
+4. Com base na estrutura do sistema web em VueJS, criar um arquivo em codigo Latex, onde sera um guia de como utilizar o sistema web, como utilizar todas as rotas, como que funciona, o que esta de baixo dos panos como o banco de dados do supabse, o vuejs, como que o sistema funciona, o que cada rota faz e como utilizar cada rota. Explicacoes bem completa e funcional, sem erros ortograficos e linguagem profissional e tecnica.
+5. Adicionar as credenciais que estao no arquivo .env na vercel

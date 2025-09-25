@@ -1,4 +1,4 @@
-import axios from 'axios'
+// import axios from 'axios' // Unused import
 
 export interface LogEntry {
   id: number
@@ -34,7 +34,7 @@ export interface LogStats {
 }
 
 class LogsService {
-  private baseURL = '/api/logs' // Replace with your actual API base URL
+  private _baseURL = '/api/logs' // Replace with your actual API base URL
   private logs: LogEntry[] = []
 
   // Generate sample logs for demonstration

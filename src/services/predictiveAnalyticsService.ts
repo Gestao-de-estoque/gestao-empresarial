@@ -1,6 +1,6 @@
 import axios from 'axios'
 // import { supabase } from '@/lib/supabase' // Commented out for now
-import { aiAnalyticsService } from './aiAnalyticsService'
+// import { aiAnalyticsService } from './aiAnalyticsService' // Unused import
 
 export interface PredictiveAnalysis {
   demandForecast: {
@@ -162,7 +162,7 @@ export class PredictiveAnalyticsService {
     const values = historicalData.map(d => d.total || 0)
 
     // Simular análise de tendência usando média móvel e regressão linear simples
-    const movingAverage = this.calculateMovingAverage(values, 7)
+    const _movingAverage = this.calculateMovingAverage(values, 7)
     const trend = this.calculateTrend(values)
     const seasonality = this.detectSeasonality(values)
 
@@ -246,7 +246,7 @@ export class PredictiveAnalyticsService {
     if (data.length < 30) return insights
 
     const weeklyPattern = this.analyzeWeeklyPattern(data)
-    const monthlyPattern = this.analyzeMonthlyPattern(data)
+    const _monthlyPattern = this.analyzeMonthlyPattern(data)
 
     if (weeklyPattern.peakDay) {
       insights.push({
@@ -407,7 +407,7 @@ export class PredictiveAnalyticsService {
     }
   }
 
-  private analyzeMonthlyPattern(data: any[]): any {
+  private analyzeMonthlyPattern(_data: any[]): any {
     // Implementação simplificada para análise mensal
     return { trend: 'stable' }
   }
@@ -420,7 +420,7 @@ export class PredictiveAnalyticsService {
     )
   }
 
-  private predictDemand(history: number[], product: any): any {
+  private predictDemand(history: number[], _product: any): any {
     const avg = history.reduce((a, b) => a + b) / history.length
     const trend = this.calculateTrend(history)
     const predicted = Math.max(1, Math.round(avg + trend * 30))

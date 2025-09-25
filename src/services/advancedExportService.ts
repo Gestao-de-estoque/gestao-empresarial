@@ -2,7 +2,7 @@ import jsPDF from 'jspdf'
 import * as XLSX from 'xlsx'
 import html2canvas from 'html2canvas'
 import { aiService } from './aiService'
-import { predictiveAnalyticsService } from './predictiveAnalyticsService'
+// import { predictiveAnalyticsService } from './predictiveAnalyticsService' // Unused import
 import { advancedAnalyticsService } from './advancedAnalyticsService'
 
 export interface ExportOptions {
@@ -261,7 +261,7 @@ export class AdvancedExportService {
   }
 
   // Exportação de imagem do dashboard completo
-  async exportDashboardImage(options: ExportOptions): Promise<void> {
+  async exportDashboardImage(_options: ExportOptions): Promise<void> {
     try {
       const dashboardElement = document.querySelector('.reports-container') as HTMLElement
       if (!dashboardElement) {
@@ -269,7 +269,6 @@ export class AdvancedExportService {
       }
 
       const canvas = await html2canvas(dashboardElement, {
-        scale: 2,
         useCORS: true,
         logging: false,
         backgroundColor: '#ffffff',
@@ -317,7 +316,7 @@ export class AdvancedExportService {
     }
   }
 
-  private async addKPISection(pdf: jsPDF, data: ExportData, currentY: number, pageWidth: number, pageHeight: number, primaryColor: string, secondaryColor: string): Promise<number> {
+  private async addKPISection(pdf: jsPDF, data: ExportData, currentY: number, pageWidth: number, pageHeight: number, primaryColor: string, _secondaryColor: string): Promise<number> {
     if (currentY > pageHeight - 50) {
       pdf.addPage()
       currentY = 20
@@ -365,7 +364,7 @@ export class AdvancedExportService {
     return y + boxHeight + 20
   }
 
-  private async addPredictiveSection(pdf: jsPDF, predictiveData: any, currentY: number, pageWidth: number, pageHeight: number, primaryColor: string): Promise<number> {
+  private async addPredictiveSection(pdf: jsPDF, predictiveData: any, currentY: number, _pageWidth: number, pageHeight: number, primaryColor: string): Promise<number> {
     if (currentY > pageHeight - 80) {
       pdf.addPage()
       currentY = 20
@@ -407,7 +406,7 @@ export class AdvancedExportService {
 
     for (const chart of charts.slice(0, 2)) {
       try {
-        const canvas = await html2canvas(chart, { scale: 1, backgroundColor: '#ffffff' })
+        const canvas = await html2canvas(chart, { backgroundColor: '#ffffff' })
         const imgData = canvas.toDataURL('image/png')
 
         const imgWidth = pageWidth - 40
@@ -460,7 +459,7 @@ export class AdvancedExportService {
     return currentY + 10
   }
 
-  private async addStatisticalSection(pdf: jsPDF, statisticalData: any, currentY: number, pageWidth: number, pageHeight: number, primaryColor: string): Promise<number> {
+  private async addStatisticalSection(pdf: jsPDF, statisticalData: any, currentY: number, _pageWidth: number, pageHeight: number, primaryColor: string): Promise<number> {
     if (currentY > pageHeight - 80) {
       pdf.addPage()
       currentY = 20
@@ -534,7 +533,7 @@ export class AdvancedExportService {
     pdf.setFontSize(8)
     pdf.setTextColor('#666666')
     pdf.text('Relatório gerado pelo GestaoZe System com tecnologia de IA', pageWidth / 2, pageHeight - 10, { align: 'center' })
-    pdf.text(`Página ${pdf.getCurrentPageInfo().pageNumber}`, pageWidth - 20, pageHeight - 10, { align: 'right' })
+    pdf.text(`Página ${(pdf as any).internal.getCurrentPageInfo().pageNumber}`, pageWidth - 20, pageHeight - 10, { align: 'right' })
   }
 
   // Métodos de preparação de dados
@@ -569,7 +568,7 @@ export class AdvancedExportService {
   }
 
   private prepareInsightsData(aiAnalysis: any): any[] {
-    const insights = []
+    const insights: any[] = []
 
     if (aiAnalysis.insights) {
       aiAnalysis.insights.forEach((insight: string, index: number) => {
@@ -625,7 +624,7 @@ export class AdvancedExportService {
   }
 
   private prepareRawData(analytics: any): any[] {
-    const rawData = []
+    const rawData: any[] = []
 
     if (analytics.stock?.lowStockProducts) {
       analytics.stock.lowStockProducts.forEach((product: any) => {
@@ -644,7 +643,7 @@ export class AdvancedExportService {
   }
 
   private generateActionPlan(data: ExportData): Array<{ title: string; description: string; priority: string; impact: string }> {
-    const actions = []
+    const actions: any[] = []
 
     if (data.analytics.stock?.lowStockCount > 0) {
       actions.push({

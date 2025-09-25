@@ -415,19 +415,19 @@
             </div>
           </div>
           <div class="performance-indicators">
-            <div class="indicator" :class="getPerformanceClass('sales')">
+            <div class="indicator" :class="getPerformanceClass(salesPerformance)">
               <span>Vendas</span>
               <div class="indicator-bar">
                 <div class="indicator-fill" :style="{ width: salesPerformance + '%' }"></div>
               </div>
             </div>
-            <div class="indicator" :class="getPerformanceClass('stock')">
+            <div class="indicator" :class="getPerformanceClass(stockPerformance)">
               <span>Estoque</span>
               <div class="indicator-bar">
                 <div class="indicator-fill" :style="{ width: stockPerformance + '%' }"></div>
               </div>
             </div>
-            <div class="indicator" :class="getPerformanceClass('efficiency')">
+            <div class="indicator" :class="getPerformanceClass(efficiencyPerformance)">
               <span>Eficiência</span>
               <div class="indicator-bar">
                 <div class="indicator-fill" :style="{ width: efficiencyPerformance + '%' }"></div>
@@ -698,15 +698,15 @@ import { advancedExportService } from '@/services/advancedExportService'
 import { Line, Bar, Doughnut, Radar, Scatter, PolarArea } from 'vue-chartjs'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import jsPDF from 'jspdf'
-import html2canvas from 'html2canvas'
-import * as XLSX from 'xlsx'
+// import jsPDF from 'jspdf'
+// import html2canvas from 'html2canvas'
+// import * as XLSX from 'xlsx'
 
 // Icons
 import {
   BarChart3, Download, RefreshCw, TrendingUp, Package, AlertTriangle,
-  DollarSign, Minus, PieChart, Loader2, CheckCircle, Activity,
-  ExternalLink, ArrowUp, ArrowDown, Target, Zap, TrendingDown
+  DollarSign, Minus, /* PieChart, */ Loader2, CheckCircle, Activity,
+  ExternalLink, ArrowUp, ArrowDown, Target, Zap /* TrendingDown */
 } from 'lucide-vue-next'
 
 // Chart.js configuration
@@ -758,7 +758,7 @@ const marketInsights = ref<string[]>([])
 const predictiveInsights = ref<any[]>([])
 const salesForecast = ref<any[]>([])
 const demandForecast = ref<any>({})
-const profitabilityPrediction = ref<any[]>([])
+// const profitabilityPrediction = ref<any[]>([])
 const anomalies = ref<any[]>([])
 const predictiveAnalysisData = ref<any>(null)
 
@@ -766,7 +766,7 @@ const predictiveAnalysisData = ref<any>(null)
 const heatmapData = ref<any[]>([])
 const funnelData = ref<any[]>([])
 const optimizationMatrix = ref<any[]>([])
-const advancedMetrics = ref<any>({})
+// const advancedMetrics = ref<any>({})
 const predictionConfidence = ref(0)
 
 const periods = [
@@ -784,6 +784,7 @@ const chartTypes = [
 interface AnalyticsData {
   sales: {
     totalSales?: number;
+    dailySales?: any[];
   };
   stock: {
     totalProducts?: number;
@@ -791,9 +792,11 @@ interface AnalyticsData {
     outOfStockCount?: number;
     totalValue?: number;
     lowStockProducts: any[];
+    categoryBreakdown?: any[];
   };
   movements: {
     recentMovements: any[];
+    dailyMovements?: any[];
   };
   suppliers: any;
 }
@@ -821,12 +824,12 @@ const stackedMovementsData = ref<any>({ labels: [], datasets: [] })
 const performanceGaugeData = ref<any>({ labels: [], datasets: [] })
 
 // New Advanced Chart Data
-const advancedSalesChartData = ref<any>({ labels: [], datasets: [] })
-const radarChartData = ref<any>({ labels: [], datasets: [] })
-const scatterChartData = ref<any>({ labels: [], datasets: [] })
-const polarChartData = ref<any>({ labels: [], datasets: [] })
+// const advancedSalesChartData = ref<any>({ labels: [], datasets: [] })
+// const radarChartData = ref<any>({ labels: [], datasets: [] })
+// const scatterChartData = ref<any>({ labels: [], datasets: [] })
+// const polarChartData = ref<any>({ labels: [], datasets: [] })
 const salesForecastChartData = ref<any>({ labels: [], datasets: [] })
-const demandForecastChartData = ref<any>({ labels: [], datasets: [] })
+// const demandForecastChartData = ref<any>({ labels: [], datasets: [] })
 
 // Metrics
 const movementMetrics = ref({
@@ -850,7 +853,7 @@ const chartOptions = {
         position: 'top' as const,
         labels: {
           color: '#64748b',
-          font: { size: 12, weight: 'bold' },
+          font: { size: 12, weight: 'bold' as const },
           usePointStyle: true
         }
       },
@@ -894,7 +897,7 @@ const chartOptions = {
         position: 'top' as const,
         labels: {
           color: '#64748b',
-          font: { size: 12, weight: 'bold' }
+          font: { size: 12, weight: 'bold' as const }
         }
       }
     },
@@ -919,7 +922,7 @@ const chartOptions = {
         position: 'top' as const,
         labels: {
           color: '#64748b',
-          font: { size: 12, weight: 'bold' }
+          font: { size: 12, weight: 'bold' as const }
         }
       }
     },
@@ -965,7 +968,7 @@ const chartOptions = {
           display: true,
           text: 'Estoque Atual',
           color: '#64748b',
-          font: { weight: 'bold' }
+          font: { weight: 'bold' as const }
         },
         grid: { color: 'rgba(100, 116, 139, 0.2)' },
         ticks: { color: '#64748b' }
@@ -975,7 +978,7 @@ const chartOptions = {
           display: true,
           text: 'Preço (R$)',
           color: '#64748b',
-          font: { weight: 'bold' }
+          font: { weight: 'bold' as const }
         },
         grid: { color: 'rgba(100, 116, 139, 0.2)' },
         ticks: { color: '#64748b' }
@@ -1304,7 +1307,7 @@ function updatePredictiveCharts() {
   if (predictiveAnalysisData.value.demandForecast?.nextMonth) {
     const forecast = predictiveAnalysisData.value.demandForecast.nextMonth
     salesForecastChartData.value = {
-      labels: forecast.map((item: any, index: number) => `Semana ${index + 1}`),
+      labels: forecast.map((_item: any, index: number) => `Semana ${index + 1}`),
       datasets: [{
         label: 'Previsão de Demanda',
         data: forecast.map((item: any) => item.quantity),
@@ -1369,12 +1372,12 @@ function generateOptimizationMatrix() {
   }))
 }
 
-function getHeatmapColor(value: number): string {
-  const intensity = Math.min(value / 5000, 1)
-  const red = Math.floor(255 * (1 - intensity))
-  const green = Math.floor(255 * intensity)
-  return `rgb(${red}, ${green}, 100)`
-}
+// function getHeatmapColor(value: number): string {
+//   const intensity = Math.min(value / 5000, 1)
+//   const red = Math.floor(255 * (1 - intensity))
+//   const green = Math.floor(255 * intensity)
+//   return `rgb(${red}, ${green}, 100)`
+// }
 
 function getPerformanceClass(score: number): string {
   if (score >= 85) return 'excellent'
@@ -1383,7 +1386,8 @@ function getPerformanceClass(score: number): string {
   return 'poor'
 }
 
-// Advanced Chart Options
+// Advanced Chart Options - commented out as unused
+/*
 const advancedSalesChartOptions = {
   responsive: true,
   maintainAspectRatio: false,
@@ -1391,7 +1395,7 @@ const advancedSalesChartOptions = {
     legend: {
       display: true,
       position: 'top' as const,
-      labels: { color: '#64748b', font: { size: 12, weight: 'bold' } }
+      labels: { color: '#64748b', font: { size: 12, weight: 'bold' as const } }
     },
     tooltip: {
       mode: 'index' as const,
@@ -1422,7 +1426,9 @@ const advancedSalesChartOptions = {
     point: { radius: 6, hoverRadius: 10 }
   }
 }
+*/
 
+/*
 const radarChartOptions = {
   responsive: true,
   maintainAspectRatio: false,
@@ -1443,6 +1449,7 @@ const radarChartOptions = {
     }
   }
 }
+*/
 
 const scatterChartOptions = {
   responsive: true,
@@ -1828,18 +1835,18 @@ watch(selectedPeriod, () => {
 })
 
 // Computed
-const currentPeriodLabel = computed(() => {
-  return periods.find(p => p.value === selectedPeriod.value)?.label || '30 dias'
-})
+// const currentPeriodLabel = computed(() => {
+//   return periods.find(p => p.value === selectedPeriod.value)?.label || '30 dias'
+// })
 
 const hasAIAnalysis = computed(() => {
   return !!aiAnalysis.value && Object.keys(aiAnalysis.value).length > 0
 })
 
-const overallHealthScore = computed(() => {
-  if (!hasAIAnalysis.value) return 0
-  return Math.round((salesPerformance.value + stockPerformance.value + efficiencyPerformance.value) / 3)
-})
+// const overallHealthScore = computed(() => {
+//   if (!hasAIAnalysis.value) return 0
+//   return Math.round((salesPerformance.value + stockPerformance.value + efficiencyPerformance.value) / 3)
+// })
 </script>
 
 <style scoped>

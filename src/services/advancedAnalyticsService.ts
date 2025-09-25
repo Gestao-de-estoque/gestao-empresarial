@@ -143,7 +143,7 @@ export class AdvancedAnalyticsService {
   }
 
   // Análise de tendências
-  analyzeTrends(data: number[], timestamps?: string[]): StatisticalAnalysis['trends'] {
+  analyzeTrends(data: number[], _timestamps?: string[]): StatisticalAnalysis['trends'] {
     if (data.length < 3) {
       return {
         trendDirection: 'estável',
@@ -356,7 +356,7 @@ export class AdvancedAnalyticsService {
   generateBusinessIntelligence(
     salesData: number[],
     stockData: any[],
-    period: string = '30d'
+    _period: string = '30d'
   ): BusinessIntelligence {
     // KPIs
     const currentRevenue = salesData.reduce((a, b) => a + b, 0)

@@ -160,7 +160,7 @@ export class AIAnalyticsService {
 
     try {
       const response = await this.callGeminiAPI(prompt)
-      return response.text?.split('\n').filter(line => line.trim()) || []
+      return response.text?.split('\n').filter((line: string) => line.trim()) || []
     } catch (error) {
       console.error('Erro ao gerar insights de mercado:', error)
       return ['Insights de mercado não disponíveis no momento']

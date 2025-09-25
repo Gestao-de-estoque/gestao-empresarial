@@ -10,7 +10,7 @@ export interface AdvancedChartData {
 export class AdvancedChartsService {
 
   // Gráfico de Performance de Vendas com Múltiplas Métricas
-  generateSalesPerformanceChart(salesData: any[], period: string): AdvancedChartData {
+  generateSalesPerformanceChart(salesData: any[], _period: string): AdvancedChartData {
     const labels = salesData.map(item => item.date)
     const sales = salesData.map(item => item.total)
     const movingAverage = this.calculateMovingAverage(sales, 7)
@@ -327,7 +327,7 @@ export class AdvancedChartsService {
   }
 
   // Gráfico de Gauge para Performance Score
-  generateGaugeChart(score: number, title: string): AdvancedChartData {
+  generateGaugeChart(score: number, _title: string): AdvancedChartData {
     return {
       type: 'doughnut',
       data: {
@@ -377,7 +377,7 @@ export class AdvancedChartsService {
     return result
   }
 
-  private getAdvancedLineOptions(title: string, yAxisLabel: string): any {
+  private getAdvancedLineOptions(_title: string, yAxisLabel: string): any {
     return {
       responsive: true,
       maintainAspectRatio: false,
@@ -434,7 +434,7 @@ export class AdvancedChartsService {
     return '#ef4444'
   }
 
-  private processDataForHeatmap(salesData: any[], period: string): any {
+  private processDataForHeatmap(salesData: any[], _period: string): any {
     // Implementação básica - pode ser expandida para dados mais complexos
     const processedData = salesData.map((item, index) => ({
       x: index,
