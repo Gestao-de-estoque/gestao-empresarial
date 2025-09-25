@@ -39,7 +39,7 @@ export async function migrateFinancialData() {
 
     // Tenta importar do arquivo data.js primeiro
     try {
-      const dataModule = await import('../data/data.js') as any
+      const dataModule = await import('../data/data.js') as { default?: any; data?: any }
       rawData = dataModule.default || dataModule.data || []
     } catch (importError) {
       console.log('Não foi possível importar data.js, usando dados de exemplo')

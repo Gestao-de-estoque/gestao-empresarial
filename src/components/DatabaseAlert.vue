@@ -49,7 +49,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { X, AlertTriangle, AlertCircle, XCircle, BarChart3, Lightbulb } from 'lucide-vue-next'
 // import { databaseStatsService } from '@/services/databaseStatsService'
 

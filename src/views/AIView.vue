@@ -648,11 +648,10 @@ async function runFinancialAnalysis() {
     const result = await aiService.analyzeFinancialData()
 
     analyses.value.financial = {
-      type: 'financial',
+      id: 'financial',
       title: 'Análise Financeira Completa',
       content: result,
-      timestamp: new Date(),
-      icon: 'DollarSign'
+      timestamp: new Date()
     }
 
     console.log('✅ Análise financeira concluída')

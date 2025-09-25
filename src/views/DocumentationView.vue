@@ -546,11 +546,6 @@ const isDarkMode = ref(false)
 const showAPIPlayground = ref(false)
 const searchResults = ref<any[]>([])
 
-// Computed
-const filteredSections = computed(() => {
-  // Retornar seções filtradas baseado na busca
-  return []
-})
 
 // Code examples
 const architectureDiagram = `

@@ -250,7 +250,7 @@
                   <button @click="editRecord(record)" class="btn-icon edit">
                     <Edit :size="16" />
                   </button>
-                  <button @click="deleteRecord(record.id)" class="btn-icon delete">
+                  <button @click="record.id && deleteRecord(record.id)" class="btn-icon delete">
                     <Trash2 :size="16" />
                   </button>
                 </td>
