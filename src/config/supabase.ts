@@ -31,5 +31,6 @@ export const DB_TABLES = {
   ROLE_PERMISSIONS: 'role_permissions',
   API_KEYS: 'api_keys',
   API_REQUESTS: 'api_requests',
-  API_METRICS: 'api_metrics'
+  API_METRICS: 'api_metrics',
+  SYSTEM_ALERTS: 'system_alerts'
 }

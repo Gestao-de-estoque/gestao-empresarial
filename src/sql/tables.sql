@@ -17,7 +17,67 @@ CREATE TABLE public.admin_users (
   ultimo_acesso timestamp with time zone,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
+  preferences jsonb DEFAULT '{"darkMode": false, "language": "pt-BR", "pushNotifications": true, "emailNotifications": true}'::jsonb,
+  avatar_url text,
+  login_count integer DEFAULT 0,
+  last_login_at timestamp with time zone,
   CONSTRAINT admin_users_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.api_keys (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  name character varying NOT NULL,
+  key character varying NOT NULL UNIQUE,
+  description text,
+  status character varying DEFAULT 'active'::character varying CHECK (status::text = ANY (ARRAY['active'::character varying, 'inactive'::character varying]::text[])),
+  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  last_used timestamp with time zone,
+  request_count integer DEFAULT 0,
+  rate_limit integer DEFAULT 1000,
+  allowed_origins jsonb DEFAULT '[]'::jsonb,
+  permissions jsonb DEFAULT '["read"]'::jsonb,
+  CONSTRAINT api_keys_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.api_metrics (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  api_key_id uuid,
+  date_hour timestamp with time zone NOT NULL,
+  request_count integer DEFAULT 0,
+  error_count integer DEFAULT 0,
+  avg_response_time integer DEFAULT 0,
+  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT api_metrics_pkey PRIMARY KEY (id),
+  CONSTRAINT api_metrics_api_key_id_fkey FOREIGN KEY (api_key_id) REFERENCES public.api_keys(id)
+);
+CREATE TABLE public.api_requests (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  api_key_id uuid,
+  method character varying NOT NULL,
+  endpoint character varying NOT NULL,
+  status_code integer NOT NULL,
+  response_time integer DEFAULT 0,
+  ip_address inet,
+  user_agent text,
+  request_body jsonb,
+  response_body jsonb,
+  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT api_requests_pkey PRIMARY KEY (id),
+  CONSTRAINT api_requests_api_key_id_fkey FOREIGN KEY (api_key_id) REFERENCES public.api_keys(id)
+);
+CREATE TABLE public.app_settings (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  section character varying NOT NULL,
+  settings jsonb NOT NULL,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT app_settings_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.bd_ativo (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  num bigint,
+  CONSTRAINT bd_ativo_pkey PRIMARY KEY (id)
 );
 CREATE TABLE public.categorias (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -27,6 +87,15 @@ CREATE TABLE public.categorias (
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
   CONSTRAINT categorias_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.financial_data (
+  id bigint NOT NULL DEFAULT nextval('financial_data_id_seq'::regclass),
+  full_day character varying NOT NULL,
+  amount numeric NOT NULL,
+  total numeric NOT NULL,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT financial_data_pkey PRIMARY KEY (id)
 );
 CREATE TABLE public.logs (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -39,6 +108,17 @@ CREATE TABLE public.logs (
   user_agent text,
   metadata jsonb,
   created_at timestamp with time zone DEFAULT now(),
+  username text NOT NULL DEFAULT 'system'::text,
+  resource text NOT NULL DEFAULT 'system'::text,
+  resource_id text,
+  details jsonb DEFAULT '{}'::jsonb,
+  severity text NOT NULL DEFAULT 'info'::text,
+  category text NOT NULL DEFAULT 'system'::text,
+  session_id text,
+  execution_time integer,
+  status text DEFAULT 'success'::text,
+  error_message text,
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
   CONSTRAINT logs_pkey PRIMARY KEY (id),
   CONSTRAINT logs_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.admin_users(id)
 );
@@ -114,6 +194,14 @@ CREATE TABLE public.movements (
   CONSTRAINT movements_product_id_fkey FOREIGN KEY (product_id) REFERENCES public.produtos(id),
   CONSTRAINT movements_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.admin_users(id)
 );
+CREATE TABLE public.permissions (
+  id character varying NOT NULL,
+  name character varying NOT NULL,
+  description text,
+  category character varying NOT NULL DEFAULT 'sistema'::character varying,
+  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT permissions_pkey PRIMARY KEY (id)
+);
 CREATE TABLE public.planejamento_semanal (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   data_inicio date NOT NULL,
@@ -160,6 +248,16 @@ CREATE TABLE public.reports (
   CONSTRAINT reports_pkey PRIMARY KEY (id),
   CONSTRAINT reports_generated_by_fkey FOREIGN KEY (generated_by) REFERENCES public.admin_users(id)
 );
+CREATE TABLE public.role_permissions (
+  role_id character varying NOT NULL,
+  permission_id character varying NOT NULL,
+  granted boolean NOT NULL DEFAULT false,
+  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT role_permissions_pkey PRIMARY KEY (role_id, permission_id),
+  CONSTRAINT role_permissions_role_id_fkey FOREIGN KEY (role_id) REFERENCES public.user_roles(id),
+  CONSTRAINT role_permissions_permission_id_fkey FOREIGN KEY (permission_id) REFERENCES public.permissions(id)
+);
 CREATE TABLE public.suppliers (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
   name character varying NOT NULL,
@@ -174,4 +272,38 @@ CREATE TABLE public.suppliers (
   created_at timestamp with time zone DEFAULT timezone('utc'::text, now()),
   updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()),
   CONSTRAINT suppliers_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.support_conversations (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  subject text NOT NULL,
+  status text NOT NULL DEFAULT 'open'::text CHECK (status = ANY (ARRAY['open'::text, 'closed'::text])),
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT support_conversations_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.support_messages (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  conversation_id uuid NOT NULL,
+  sender_id uuid NOT NULL,
+  sender_role text NOT NULL CHECK (sender_role = ANY (ARRAY['admin'::text, 'support'::text])),
+  content text NOT NULL,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT support_messages_pkey PRIMARY KEY (id),
+  CONSTRAINT support_messages_conversation_id_fkey FOREIGN KEY (conversation_id) REFERENCES public.support_conversations(id)
+);
+CREATE TABLE public.support_participants (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  conversation_id uuid NOT NULL,
+  user_id uuid NOT NULL,
+  role text NOT NULL CHECK (role = ANY (ARRAY['admin'::text, 'support'::text])),
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT support_participants_pkey PRIMARY KEY (id),
+  CONSTRAINT support_participants_conversation_id_fkey FOREIGN KEY (conversation_id) REFERENCES public.support_conversations(id)
+);
+CREATE TABLE public.user_roles (
+  id character varying NOT NULL,
+  name character varying NOT NULL,
+  description text,
+  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT user_roles_pkey PRIMARY KEY (id)
 );

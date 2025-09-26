@@ -231,10 +231,10 @@
       <div class="footer-bottom">
         <div class="footer-bottom-content">
           <div class="legal-links">
-            <a href="#" class="legal-link">Termos de Uso</a>
-            <a href="#" class="legal-link">Política de Privacidade</a>
-            <a href="#" class="legal-link">LGPD</a>
-            <a href="#" class="legal-link">Cookies</a>
+            <router-link to="/legal/terms" class="legal-link">Termos de Uso</router-link>
+            <router-link to="/legal/privacy" class="legal-link">Política de Privacidade</router-link>
+            <router-link to="/legal/lgpd" class="legal-link">LGPD</router-link>
+            <router-link to="/legal/cookies" class="legal-link">Cookies</router-link>
           </div>
 
           <div class="footer-meta">

@@ -96,14 +96,28 @@ class DatabaseStatsService {
    */
   private async getTableStatistics(): Promise<TableStat[]> {
     const tables = [
-      { name: 'admin_users', label: 'Usuários' },
+      { name: 'admin_users', label: 'Usuários Administrativos' },
       { name: 'produtos', label: 'Produtos' },
       { name: 'categorias', label: 'Categorias' },
-      { name: 'movements', label: 'Movimentações' },
+      { name: 'movements', label: 'Movimentações de Estoque' },
       { name: 'menu_items', label: 'Itens do Menu' },
+      { name: 'menu_item_ingredientes', label: 'Ingredientes do Menu' },
+      { name: 'menu_diario', label: 'Planejamento Diário' },
+      { name: 'planejamento_semanal', label: 'Planejamento Semanal' },
       { name: 'logs', label: 'Logs do Sistema' },
       { name: 'reports', label: 'Relatórios' },
-      { name: 'suppliers', label: 'Fornecedores' }
+      { name: 'suppliers', label: 'Fornecedores' },
+      { name: 'financial_data', label: 'Dados Financeiros' },
+      { name: 'api_keys', label: 'Chaves de API' },
+      { name: 'api_requests', label: 'Requisições de API' },
+      { name: 'api_metrics', label: 'Métricas de API' },
+      { name: 'support_conversations', label: 'Conversas de Suporte' },
+      { name: 'support_messages', label: 'Mensagens de Suporte' },
+      { name: 'support_participants', label: 'Participantes do Suporte' },
+      { name: 'permissions', label: 'Permissões' },
+      { name: 'user_roles', label: 'Funções de Usuário' },
+      { name: 'role_permissions', label: 'Permissões por Função' },
+      { name: 'app_settings', label: 'Configurações do App' }
     ]
 
     const tableStats: TableStat[] = []
@@ -285,6 +299,121 @@ class DatabaseStatsService {
     } else {
       return `${(sizeInMB / 1024).toFixed(1)} GB`
     }
+  }
+
+  /**
+   * Obter informações de memória e sistema
+   */
+  async getSystemMetrics(): Promise<{
+    memoryAvailable: number // em MB
+    totalRecords: number
+    filesCount: number
+    storageUsed: number // em MB
+  }> {
+    try {
+      const stats = await this.getDatabaseStats()
+
+      return {
+        memoryAvailable: stats.availableSpace,
+        totalRecords: stats.tableStats.reduce((sum, table) => sum + table.rowCount, 0),
+        filesCount: stats.storageStats.totalFiles,
+        storageUsed: stats.storageStats.totalSize
+      }
+    } catch (error) {
+      console.error('Erro ao obter métricas do sistema:', error)
+      return {
+        memoryAvailable: 0,
+        totalRecords: 0,
+        filesCount: 0,
+        storageUsed: 0
+      }
+    }
+  }
+
+  /**
+   * Obter informações detalhadas de todas as tabelas
+   */
+  async getAllTablesInfo(): Promise<{
+    tables: Array<{
+      name: string
+      records: number
+      size: string
+      category: string
+      lastUpdate: string
+      status: 'active' | 'empty' | 'large'
+    }>
+    summary: {
+      totalTables: number
+      totalRecords: number
+      totalSize: string
+      activeTables: number
+    }
+  }> {
+    try {
+      const tableStats = await this.getTableStatistics()
+
+      const tables = tableStats.map(table => ({
+        name: table.tableName,
+        records: table.rowCount,
+        size: this.formatSize(table.sizeInMB),
+        category: this.getCategoryByTable(table.tableName),
+        lastUpdate: new Date(table.lastUpdated).toLocaleDateString('pt-BR'),
+        status: table.rowCount === 0 ? 'empty' as const :
+                table.rowCount > 1000 ? 'large' as const : 'active' as const
+      }))
+
+      const summary = {
+        totalTables: tables.length,
+        totalRecords: tables.reduce((sum, table) => sum + table.records, 0),
+        totalSize: this.formatSize(tableStats.reduce((sum, table) => sum + table.sizeInMB, 0)),
+        activeTables: tables.filter(table => table.status === 'active').length
+      }
+
+      return { tables, summary }
+    } catch (error) {
+      console.error('Erro ao obter informações das tabelas:', error)
+      return {
+        tables: [],
+        summary: {
+          totalTables: 0,
+          totalRecords: 0,
+          totalSize: '0 MB',
+          activeTables: 0
+        }
+      }
+    }
+  }
+
+  /**
+   * Categorizar tabelas por função
+   */
+  private getCategoryByTable(tableName: string): string {
+    const categories: { [key: string]: string } = {
+      'Usuários Administrativos': 'Autenticação',
+      'Produtos': 'Estoque',
+      'Categorias': 'Estoque',
+      'Movimentações de Estoque': 'Estoque',
+      'Itens do Menu': 'Cardápio',
+      'Ingredientes do Menu': 'Cardápio',
+      'Planejamento Diário': 'Cardápio',
+      'Planejamento Semanal': 'Cardápio',
+      'Logs do Sistema': 'Sistema',
+      'Relatórios': 'Analytics',
+      'Fornecedores': 'Gestão',
+      'Dados Financeiros': 'Financeiro',
+      'Chaves de API': 'API',
+      'Requisições de API': 'API',
+      'Métricas de API': 'API',
+      'Conversas de Suporte': 'Suporte',
+      'Mensagens de Suporte': 'Suporte',
+      'Participantes do Suporte': 'Suporte',
+      'Permissões': 'Segurança',
+      'Funções de Usuário': 'Segurança',
+      'Permissões por Função': 'Segurança',
+      'Configurações do App': 'Sistema'
+    }
+
+    return categories[tableName] || 'Outros'
   }
 
   /**

@@ -58,8 +58,8 @@
               <HardDrive :size="18" />
             </div>
             <div class="metric-info">
-              <div class="metric-value">{{ formatSize(stats?.availableSpace || 0) }}</div>
-              <div class="metric-label">Disponível</div>
+              <div class="metric-value">{{ formatSize(systemMetrics?.memoryAvailable || 0) }}</div>
+              <div class="metric-label">Memória Disponível</div>
             </div>
           </div>
 
@@ -68,8 +68,8 @@
               <Database :size="18" />
             </div>
             <div class="metric-info">
-              <div class="metric-value">{{ totalRecords.toLocaleString() }}</div>
-              <div class="metric-label">Registros</div>
+              <div class="metric-value">{{ (systemMetrics?.totalRecords || 0).toLocaleString() }}</div>
+              <div class="metric-label">Total de Registros</div>
             </div>
           </div>
 
@@ -78,7 +78,7 @@
               <Image :size="18" />
             </div>
             <div class="metric-info">
-              <div class="metric-value">{{ stats?.storageStats.totalFiles || 0 }}</div>
+              <div class="metric-value">{{ systemMetrics?.filesCount || 0 }}</div>
               <div class="metric-label">Arquivos</div>
             </div>
           </div>
@@ -88,8 +88,44 @@
               <Gauge :size="18" />
             </div>
             <div class="metric-info">
-              <div class="metric-value">{{ formatSize(stats?.storageStats.totalSize || 0) }}</div>
+              <div class="metric-value">{{ formatSize(systemMetrics?.storageUsed || 0) }}</div>
               <div class="metric-label">Storage</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Resumo das Tabelas -->
+        <div class="tables-summary" v-if="tablesInfo">
+          <div class="summary-header">
+            <h3>
+              <Table2 :size="18" />
+              Resumo das Tabelas
+            </h3>
+            <div class="summary-badges">
+              <span class="badge total">{{ tablesInfo.summary.totalTables }} tabelas</span>
+              <span class="badge active">{{ tablesInfo.summary.activeTables }} ativas</span>
+            </div>
+          </div>
+
+          <div class="summary-stats">
+            <div class="summary-stat">
+              <div class="stat-icon">
+                <Database :size="16" />
+              </div>
+              <div class="stat-info">
+                <span class="stat-value">{{ tablesInfo.summary.totalRecords.toLocaleString() }}</span>
+                <span class="stat-label">Total de Registros</span>
+              </div>
+            </div>
+
+            <div class="summary-stat">
+              <div class="stat-icon">
+                <HardDrive :size="16" />
+              </div>
+              <div class="stat-info">
+                <span class="stat-value">{{ tablesInfo.summary.totalSize }}</span>
+                <span class="stat-label">Tamanho Total</span>
+              </div>
             </div>
           </div>
         </div>
@@ -163,8 +199,118 @@
         </div>
         </div>
 
-        <div v-else>
-          <DatabaseExplorer />
+        <div v-else class="explorer-tab">
+          <!-- Filtros e Busca -->
+          <div class="explorer-filters">
+            <div class="filter-group">
+              <label>Filtrar por categoria:</label>
+              <select v-model="selectedCategory" class="filter-select">
+                <option value="">Todas as categorias</option>
+                <option value="Estoque">Estoque</option>
+                <option value="Cardápio">Cardápio</option>
+                <option value="Sistema">Sistema</option>
+                <option value="API">API</option>
+                <option value="Suporte">Suporte</option>
+                <option value="Segurança">Segurança</option>
+                <option value="Financeiro">Financeiro</option>
+                <option value="Analytics">Analytics</option>
+                <option value="Gestão">Gestão</option>
+                <option value="Autenticação">Autenticação</option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label>Filtrar por status:</label>
+              <select v-model="selectedStatus" class="filter-select">
+                <option value="">Todos os status</option>
+                <option value="active">Ativas</option>
+                <option value="large">Grandes</option>
+                <option value="empty">Vazias</option>
+              </select>
+            </div>
+
+            <div class="search-group">
+              <Search :size="16" />
+              <input
+                v-model="searchTerm"
+                type="text"
+                placeholder="Buscar tabelas..."
+                class="search-input"
+              />
+            </div>
+          </div>
+
+          <!-- Lista de Tabelas -->
+          <div class="tables-explorer" v-if="filteredTables">
+            <div class="explorer-header">
+              <h3>
+                <Database :size="18" />
+                Explorar Tabelas ({{ filteredTables.length }})
+              </h3>
+              <div class="view-toggle">
+                <button
+                  @click="viewMode = 'grid'"
+                  :class="{ active: viewMode === 'grid' }"
+                  class="view-btn"
+                >
+                  <Grid3x3 :size="16" />
+                </button>
+                <button
+                  @click="viewMode = 'list'"
+                  :class="{ active: viewMode === 'list' }"
+                  class="view-btn"
+                >
+                  <List :size="16" />
+                </button>
+              </div>
+            </div>
+
+            <div :class="['tables-container', viewMode]">
+              <div
+                v-for="table in filteredTables"
+                :key="table.name"
+                class="table-explorer-card"
+                :class="table.status"
+              >
+                <div class="table-card-header">
+                  <div class="table-icon">
+                    <component :is="getTableIcon(table.category)" :size="20" />
+                  </div>
+                  <div class="table-title">
+                    <h4>{{ table.name }}</h4>
+                    <span class="table-category">{{ table.category }}</span>
+                  </div>
+                  <div class="table-status-badge" :class="table.status">
+                    {{ getStatusLabel(table.status) }}
+                  </div>
+                </div>
+
+                <div class="table-card-content">
+                  <div class="table-metrics">
+                    <div class="metric">
+                      <Database :size="14" />
+                      <span>{{ table.records.toLocaleString() }} registros</span>
+                    </div>
+                    <div class="metric">
+                      <HardDrive :size="14" />
+                      <span>{{ table.size }}</span>
+                    </div>
+                    <div class="metric">
+                      <Calendar :size="14" />
+                      <span>{{ table.lastUpdate }}</span>
+                    </div>
+                  </div>
+
+                  <div class="table-actions">
+                    <button @click="viewTableDetails(table)" class="action-button">
+                      <Eye :size="14" />
+                      Ver Detalhes
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -192,7 +338,9 @@ import { ref, computed, onMounted } from 'vue'
 import {
   Database, HardDrive, Image, Lightbulb, Info, Gauge,
   ChevronDown, ChevronUp, X, Table2, Loader2, RefreshCw,
-  CheckCircle, AlertTriangle, XCircle
+  CheckCircle, AlertTriangle, XCircle, Search, Grid3x3, List,
+  Calendar, Eye, Package, Users, Settings, Shield, DollarSign,
+  BarChart3, HeadphonesIcon, Lock, Cog
 } from 'lucide-vue-next'
 import { databaseStatsService, type DatabaseStats } from '@/services/databaseStatsService'
 import DatabaseAlert from './DatabaseAlert.vue'
@@ -202,15 +350,70 @@ import DatabaseExplorer from './DatabaseExplorer.vue'
 const stats = ref<DatabaseStats | null>(null)
 const healthStatus = ref({ status: 'healthy', message: '', usagePercentage: 0 })
 const recommendations = ref<string[]>([])
+const systemMetrics = ref<{
+  memoryAvailable: number
+  totalRecords: number
+  filesCount: number
+  storageUsed: number
+} | null>(null)
+const tablesInfo = ref<{
+  tables: Array<{
+    name: string
+    records: number
+    size: string
+    category: string
+    lastUpdate: string
+    status: 'active' | 'empty' | 'large'
+  }>
+  summary: {
+    totalTables: number
+    totalRecords: number
+    totalSize: string
+    activeTables: number
+  }
+} | null>(null)
 const isLoading = ref(false)
 const error = ref(false)
 const showDetails = ref(false)
 const showRecommendations = ref(false)
 const activeTab = ref<'overview' | 'explorer'>('overview')
 
+// Explorer state
+const selectedCategory = ref('')
+const selectedStatus = ref('')
+const searchTerm = ref('')
+const viewMode = ref<'grid' | 'list'>('grid')
+
 // Computed
 const totalRecords = computed(() => {
   return (stats.value?.tableStats || []).reduce((sum, table) => sum + table.rowCount, 0)
+})
+
+const filteredTables = computed(() => {
+  if (!tablesInfo.value) return []
+
+  let filtered = tablesInfo.value.tables
+
+  // Filtrar por categoria
+  if (selectedCategory.value) {
+    filtered = filtered.filter(table => table.category === selectedCategory.value)
+  }
+
+  // Filtrar por status
+  if (selectedStatus.value) {
+    filtered = filtered.filter(table => table.status === selectedStatus.value)
+  }
+
+  // Filtrar por termo de busca
+  if (searchTerm.value) {
+    const term = searchTerm.value.toLowerCase()
+    filtered = filtered.filter(table =>
+      table.name.toLowerCase().includes(term) ||
+      table.category.toLowerCase().includes(term)
+    )
+  }
+
+  return filtered
 })
 
 // Funções
@@ -251,6 +454,36 @@ function handleAlertDismissed() {
   console.log('🔔 Alerta do banco de dados dispensado')
 }
 
+function getTableIcon(category: string) {
+  const icons: { [key: string]: any } = {
+    'Estoque': Package,
+    'Cardápio': Database,
+    'Sistema': Settings,
+    'API': Cog,
+    'Suporte': HeadphonesIcon,
+    'Segurança': Shield,
+    'Financeiro': DollarSign,
+    'Analytics': BarChart3,
+    'Gestão': Users,
+    'Autenticação': Lock
+  }
+  return icons[category] || Database
+}
+
+function getStatusLabel(status: string): string {
+  const labels: { [key: string]: string } = {
+    'active': 'Ativa',
+    'large': 'Grande',
+    'empty': 'Vazia'
+  }
+  return labels[status] || status
+}
+
+function viewTableDetails(table: any) {
+  console.log('📋 Visualizando detalhes da tabela:', table.name)
+  // Aqui você pode implementar um modal ou navegar para uma página de detalhes
+}
+
 async function refreshStats() {
   await loadStats()
 }
@@ -262,15 +495,19 @@ async function loadStats() {
   try {
     console.log('📊 Atualizando estatísticas do banco...')
 
-    const [dbStats, health, recs] = await Promise.all([
+    const [dbStats, health, recs, metrics, tables] = await Promise.all([
       databaseStatsService.getDatabaseStats(),
       databaseStatsService.checkDatabaseHealth(),
-      databaseStatsService.getOptimizationRecommendations()
+      databaseStatsService.getOptimizationRecommendations(),
+      databaseStatsService.getSystemMetrics(),
+      databaseStatsService.getAllTablesInfo()
     ])
 
     stats.value = dbStats
     healthStatus.value = health
     recommendations.value = recs
+    systemMetrics.value = metrics
+    tablesInfo.value = tables
 
     // Auto-mostrar recomendações se houver e uso >= 70%
     if (recs.length > 0 && health.usagePercentage >= 70) {
@@ -280,7 +517,9 @@ async function loadStats() {
     console.log('✅ Estatísticas atualizadas:', {
       size: formatSize(dbStats.totalSize),
       usage: `${Math.round(dbStats.usagePercentage)}%`,
-      status: health.status
+      status: health.status,
+      totalRecords: metrics.totalRecords,
+      totalTables: tables.summary.totalTables
     })
 
   } catch (err: any) {
@@ -685,6 +924,380 @@ onMounted(() => {
   to { transform: rotate(360deg); }
 }
 
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  background: rgba(248, 250, 252, 0.8);
+  padding: 4px;
+  border-radius: 12px;
+}
+
+.tab {
+  flex: 1;
+  padding: 12px 16px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  font-weight: 600;
+  color: var(--theme-text-secondary);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.tab.active {
+  background: white;
+  color: var(--theme-primary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Tables Summary */
+.tables-summary {
+  background: rgba(248, 250, 252, 0.6);
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid rgba(226, 232, 240, 0.5);
+  margin: 20px 0;
+}
+
+.summary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.summary-header h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--theme-text-primary);
+}
+
+.summary-badges {
+  display: flex;
+  gap: 8px;
+}
+
+.badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge.total {
+  background: rgba(59, 130, 246, 0.1);
+  color: #2563eb;
+}
+
+.badge.active {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+}
+
+.summary-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.summary-stat {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.stat-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(59, 130, 246, 0.1);
+  color: #2563eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--theme-text-primary);
+  line-height: 1.2;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--theme-text-secondary);
+  font-weight: 500;
+}
+
+/* Explorer Tab */
+.explorer-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.explorer-filters {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  padding: 20px;
+  background: rgba(248, 250, 252, 0.6);
+  border-radius: 16px;
+  border: 1px solid rgba(226, 232, 240, 0.5);
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filter-group label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--theme-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.filter-select {
+  padding: 8px 12px;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  border-radius: 8px;
+  background: white;
+  font-size: 14px;
+  color: var(--theme-text-primary);
+}
+
+.search-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+}
+
+.search-group svg {
+  position: absolute;
+  left: 12px;
+  color: var(--theme-text-secondary);
+}
+
+.search-input {
+  width: 100%;
+  padding: 8px 12px 8px 36px;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  border-radius: 8px;
+  background: white;
+  font-size: 14px;
+  color: var(--theme-text-primary);
+}
+
+.search-input::placeholder {
+  color: var(--theme-text-secondary);
+}
+
+.explorer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.explorer-header h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--theme-text-primary);
+}
+
+.view-toggle {
+  display: flex;
+  gap: 4px;
+  background: rgba(248, 250, 252, 0.8);
+  padding: 4px;
+  border-radius: 8px;
+}
+
+.view-btn {
+  padding: 8px;
+  border: none;
+  background: transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--theme-text-secondary);
+  transition: all 0.2s ease;
+}
+
+.view-btn.active {
+  background: white;
+  color: var(--theme-primary);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.tables-container.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.tables-container.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.table-explorer-card {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  padding: 20px;
+  transition: all 0.3s ease;
+}
+
+.table-explorer-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.table-explorer-card.large {
+  border-left: 4px solid #f59e0b;
+}
+
+.table-explorer-card.empty {
+  border-left: 4px solid #9ca3af;
+  opacity: 0.7;
+}
+
+.table-explorer-card.active {
+  border-left: 4px solid #10b981;
+}
+
+.table-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.table-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(59, 130, 246, 0.1);
+  color: #2563eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.table-title {
+  flex: 1;
+  min-width: 0;
+}
+
+.table-title h4 {
+  margin: 0 0 4px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--theme-text-primary);
+}
+
+.table-category {
+  font-size: 12px;
+  color: var(--theme-text-secondary);
+  background: rgba(100, 116, 139, 0.1);
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.table-status-badge {
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.table-status-badge.active {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+}
+
+.table-status-badge.large {
+  background: rgba(245, 158, 11, 0.1);
+  color: #d97706;
+}
+
+.table-status-badge.empty {
+  background: rgba(156, 163, 175, 0.1);
+  color: #6b7280;
+}
+
+.table-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.table-metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.metric {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--theme-text-secondary);
+}
+
+.metric svg {
+  flex-shrink: 0;
+}
+
+.table-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.action-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  background: rgba(59, 130, 246, 0.05);
+  color: #2563eb;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.action-button:hover {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.5);
+}
+
 /* Responsividade */
 @media (max-width: 768px) {
   .panel-header {
@@ -713,6 +1326,18 @@ onMounted(() => {
 
   .table-size {
     align-self: flex-end;
+  }
+
+  .explorer-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .tables-container.grid {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-stats {
+    grid-template-columns: 1fr;
   }
 }
 </style>

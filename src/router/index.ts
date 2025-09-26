@@ -21,6 +21,10 @@ import SecurityView from '@/views/admin/SecurityView.vue'
 import NotificationsManagementView from '@/views/admin/NotificationsManagementView.vue'
 import APIManagementView from '@/views/admin/APIManagementView.vue'
 import PermissionsView from '@/views/admin/PermissionsView.vue'
+import TermsView from '@/views/legal/TermsView.vue'
+import PrivacyView from '@/views/legal/PrivacyView.vue'
+import LGPDView from '@/views/legal/LGPDView.vue'
+import CookiesView from '@/views/legal/CookiesView.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -161,6 +165,27 @@ const router = createRouter({
       name: 'admin-permissions',
       component: PermissionsView,
       meta: { requiresAuth: true, requiresAdmin: true }
+    },
+    // Rotas legais (acessíveis sem autenticação)
+    {
+      path: '/legal/terms',
+      name: 'terms',
+      component: TermsView
+    },
+    {
+      path: '/legal/privacy',
+      name: 'privacy',
+      component: PrivacyView
+    },
+    {
+      path: '/legal/lgpd',
+      name: 'lgpd',
+      component: LGPDView
+    },
+    {
+      path: '/legal/cookies',
+      name: 'cookies',
+      component: CookiesView
     }
   ]
 })

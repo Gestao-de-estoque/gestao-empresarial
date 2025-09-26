@@ -224,6 +224,10 @@
             <button @click="refreshAlerts" class="refresh-btn">
               <RefreshCw :size="16" />
             </button>
+            <button @click="testAlerts" class="test-btn" v-if="isDevelopment">
+              <Zap :size="16" />
+              Testar
+            </button>
           </div>
           <div class="alerts-list">
             <div v-if="alerts.length === 0" class="no-alerts">
@@ -238,12 +242,17 @@
                 :class="alert.type"
               >
                 <div class="alert-icon">
-                  <component :is="alert.icon" :size="20" />
+                  <component :is="getAlertIcon(alert.icon)" :size="20" />
                 </div>
                 <div class="alert-content">
                   <h4>{{ alert.title }}</h4>
                   <p>{{ alert.description }}</p>
-                  <small>{{ formatDate(alert.date) }}</small>
+                  <div v-if="alert.details" class="alert-details">{{ alert.details }}</div>
+                  <small>{{ formatDate(new Date(alert.created_at)) }}</small>
+                  <div v-if="alert.action_required" class="action-required">
+                    <AlertCircle :size="12" />
+                    Ação necessária
+                  </div>
                 </div>
                 <button @click="dismissAlert(alert.id)" class="dismiss-btn">
                   <X :size="16" />
@@ -308,37 +317,9 @@
           <DatabaseStats />
         </section>
 
-        <!-- Widget de Performance -->
+        <!-- Performance do Sistema -->
         <section class="performance-panel">
-          <div class="panel-header">
-            <h2>
-              <Gauge :size="20" />
-              Performance do Sistema
-            </h2>
-          </div>
-          <div class="performance-metrics">
-            <div class="metric-item">
-              <div class="metric-label">CPU</div>
-              <div class="metric-bar">
-                <div class="metric-fill" :style="{ width: systemMetrics.cpu + '%' }"></div>
-              </div>
-              <div class="metric-value">{{ systemMetrics.cpu }}%</div>
-            </div>
-            <div class="metric-item">
-              <div class="metric-label">Memória</div>
-              <div class="metric-bar">
-                <div class="metric-fill" :style="{ width: systemMetrics.memory + '%' }"></div>
-              </div>
-              <div class="metric-value">{{ systemMetrics.memory }}%</div>
-            </div>
-            <div class="metric-item">
-              <div class="metric-label">Storage</div>
-              <div class="metric-bar">
-                <div class="metric-fill" :style="{ width: systemMetrics.storage + '%' }"></div>
-              </div>
-              <div class="metric-value">{{ systemMetrics.storage }}%</div>
-            </div>
-          </div>
+          <SystemPerformance />
         </section>
       </div>
     </main>
@@ -396,6 +377,9 @@ import SupportAuthModal from '@/components/support/SupportAuthModal.vue'
 import SupportChatWidget from '@/components/support/SupportChatWidget.vue'
 import { productService } from '@/services/productService'
 import { salesService } from '@/services/salesService'
+import { alertsService, type SystemAlert } from '@/services/alertsService'
+import { populateTestData } from '@/utils/populateTestAlerts'
+import { initializeAlertsTable, testAlertsSystem } from '@/utils/initializeAlerts'
 import { supabase, DB_TABLES } from '@/config/supabase'
 import { populateTestLogs, populateTestMovements } from '@/utils/populateTestData'
 import { Line, Doughnut } from 'vue-chartjs'
@@ -403,13 +387,15 @@ import { formatDistanceToNow, format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import NotificationCenter from '@/components/NotificationCenter.vue'
 import DatabaseStats from '@/components/DatabaseStats.vue'
+import SystemPerformance from '@/components/SystemPerformance.vue'
 
 // Importar ícones do Lucide
 import {
   Search, User, ChevronDown, LogOut, Zap, Package, Brain,
   BarChart3, Plus, Minus, ArrowRight, TrendingUp, TrendingDown, AlertTriangle,
   RefreshCw, CheckCircle, X, PieChart, Activity, ExternalLink,
-  Gauge, Loader2, Settings, Sliders, Users, ChefHat, Info, DollarSign, FileText
+  Gauge, Loader2, Settings, Sliders, Users, ChefHat, Info, DollarSign, FileText,
+  AlertCircle, XCircle, FolderX
 } from 'lucide-vue-next'
 
 // Importar configurações do Chart.js
@@ -451,6 +437,7 @@ const showProfile = ref(false)
 // const showReports = ref(false)
 // const showAddProduct = ref(false)
 const selectedPeriod = ref('7d')
+const isDevelopment = ref(import.meta.env.DEV)
 
 // Dados do dashboard
 const quickStats = ref([
@@ -488,33 +475,10 @@ const quickStats = ref([
   }
 ])
 
-const alerts = ref([
-  {
-    id: 1,
-    type: 'warning',
-    title: 'Estoque Baixo',
-    description: '3 produtos com estoque abaixo do mínimo',
-    icon: AlertTriangle,
-    date: new Date()
-  },
-  {
-    id: 2,
-    type: 'info',
-    title: 'Backup Realizado',
-    description: 'Backup automático concluído com sucesso',
-    icon: CheckCircle,
-    date: new Date(Date.now() - 2 * 60 * 60 * 1000)
-  }
-])
+const alerts = ref<SystemAlert[]>([])
 
 
 const recentActivity = ref<any[]>([])
-
-const systemMetrics = ref({
-  cpu: 45,
-  memory: 62,
-  storage: 78
-})
 
 // Dados dos gráficos
 const salesChartData = ref<any>({
@@ -606,6 +570,39 @@ function formatDate(date: Date) {
 
 function formatTimeAgo(date: Date) {
   return formatDistanceToNow(date, { addSuffix: true, locale: ptBR })
+}
+
+function getAlertIcon(iconName: string) {
+  const iconMap: { [key: string]: any } = {
+    'AlertTriangle': AlertTriangle,
+    'CheckCircle': CheckCircle,
+    'XCircle': XCircle,
+    'Info': Info,
+    'AlertCircle': AlertCircle,
+    'TrendingUp': TrendingUp,
+    'FolderX': FolderX,
+    'Package': Package,
+    'Settings': Settings
+  }
+  return iconMap[iconName] || AlertCircle
+}
+
+async function testAlerts() {
+  console.log('🧪 Iniciando teste de alertas...')
+  try {
+    // Popular dados de teste
+    await populateTestData()
+
+    // Gerar alertas baseados nos dados
+    await alertsService.generateSystemAlerts()
+
+    // Recarregar alertas
+    await loadAlerts()
+
+    console.log('✅ Teste de alertas concluído! Verifique a seção de alertas.')
+  } catch (error) {
+    console.error('❌ Erro no teste de alertas:', error)
+  }
 }
 
 async function loadDashboardData() {
@@ -850,15 +847,47 @@ function performQuickSearch() {
   }
 }
 
-function refreshAlerts() {
-  // Recarregar alertas
-  loadDashboardData()
+async function refreshAlerts() {
+  console.log('🔄 Atualizando alertas do sistema...')
+  try {
+    // Gerar novos alertas baseados no estado atual do sistema
+    await alertsService.generateSystemAlerts()
+
+    // Carregar alertas ativos
+    await loadAlerts()
+
+    console.log('✅ Alertas atualizados')
+  } catch (error) {
+    console.error('❌ Erro ao atualizar alertas:', error)
+  }
 }
 
-function dismissAlert(alertId: number) {
-  const index = alerts.value.findIndex(alert => alert.id === alertId)
-  if (index !== -1) {
-    alerts.value.splice(index, 1)
+async function loadAlerts() {
+  try {
+    console.log('📋 Carregando alertas ativos...')
+    const activeAlerts = await alertsService.getActiveAlerts()
+    alerts.value = activeAlerts
+    console.log(`✅ ${activeAlerts.length} alertas carregados`)
+  } catch (error) {
+    console.error('❌ Erro ao carregar alertas:', error)
+  }
+}
+
+async function dismissAlert(alertId: string) {
+  try {
+    console.log(`🗑️ Resolvendo alerta ${alertId}...`)
+    const success = await alertsService.resolveAlert(alertId)
+
+    if (success) {
+      // Remover alerta da lista local
+      const index = alerts.value.findIndex(alert => alert.id === alertId)
+      if (index !== -1) {
+        alerts.value.splice(index, 1)
+      }
+      console.log('✅ Alerta resolvido')
+    }
+  } catch (error) {
+    console.error('❌ Erro ao resolver alerta:', error)
   }
 }
 
@@ -877,30 +906,30 @@ async function handleLogout() {
   router.push('/login')
 }
 
-// Simular métricas do sistema
-function updateSystemMetrics() {
-  systemMetrics.value.cpu = Math.max(20, Math.min(80, systemMetrics.value.cpu + (Math.random() - 0.5) * 10))
-  systemMetrics.value.memory = Math.max(30, Math.min(90, systemMetrics.value.memory + (Math.random() - 0.5) * 5))
-  systemMetrics.value.storage = Math.max(50, Math.min(95, systemMetrics.value.storage + (Math.random() - 0.5) * 2))
-}
-
-let metricsInterval: NodeJS.Timeout
 
 // Watcher para atualizar gráfico quando mudar o período
 watch(selectedPeriod, () => {
   updateSalesChart()
 })
 
-onMounted(() => {
+onMounted(async () => {
   loadDashboardData()
   fetchRecentActivity()
-  metricsInterval = setInterval(updateSystemMetrics, 5000)
+
+  // Carregar alertas existentes
+  await loadAlerts()
+
+  // Gerar novos alertas automaticamente
+  try {
+    await alertsService.generateSystemAlerts()
+    await loadAlerts() // Recarregar após gerar novos alertas
+  } catch (error) {
+    console.error('Erro ao gerar alertas iniciais:', error)
+  }
 })
 
 onUnmounted(() => {
-  if (metricsInterval) {
-    clearInterval(metricsInterval)
-  }
+  // Cleanup se necessário
 })
 
 function onSupportLogin() { isSupport.value = true }
@@ -1235,11 +1264,11 @@ function onSupportLogin() { isSupport.value = true }
 }
 
 .database-panel {
-  grid-column: span 8;
+  grid-column: span 12;
 }
 
 .performance-panel {
-  grid-column: span 4;
+  grid-column: span 12;
 }
 
 .panel-header {
@@ -1456,6 +1485,43 @@ function onSupportLogin() { isSupport.value = true }
   background: #eff6ff;
 }
 
+.alert-item.success {
+  border-left-color: #10b981;
+  background: #ecfdf5;
+}
+
+.alert-item.critical {
+  border-left-color: #ef4444;
+  background: #fef2f2;
+  animation: criticalAlert 2s infinite;
+}
+
+@keyframes criticalAlert {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.95; }
+}
+
+.alert-details {
+  font-size: 12px;
+  color: var(--theme-text-secondary);
+  margin: 4px 0;
+  font-style: italic;
+}
+
+.action-required {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #d97706;
+  font-weight: 600;
+  margin-top: 8px;
+  padding: 4px 8px;
+  background: rgba(245, 158, 11, 0.1);
+  border-radius: 6px;
+  width: fit-content;
+}
+
 .alert-icon {
   width: 36px;
   height: 36px;
@@ -1559,48 +1625,7 @@ function onSupportLogin() { isSupport.value = true }
   color: #94a3b8;
 }
 
-/* Performance */
-.performance-metrics {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 24px;
-}
-
-.metric-item {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.metric-label {
-  font-size: 14px;
-  font-weight: 600;
-  color: #1a202c;
-  min-width: 60px;
-}
-
-.metric-bar {
-  flex: 1;
-  height: 8px;
-  background: #f1f5f9;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.metric-fill {
-  height: 100%;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  border-radius: 4px;
-  transition: width 0.3s ease;
-}
-
-.metric-value {
-  font-size: 14px;
-  font-weight: 600;
-  color: #1a202c;
-  min-width: 40px;
-  text-align: right;
-}
+/* Performance - agora usando componente SystemPerformance */
 
 /* Overlays e modais */
 .notifications-overlay,
@@ -1797,7 +1822,8 @@ function onSupportLogin() { isSupport.value = true }
   color: #5a67d8;
 }
 
-.refresh-btn {
+.refresh-btn,
+.test-btn {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
@@ -1805,11 +1831,27 @@ function onSupportLogin() { isSupport.value = true }
   cursor: pointer;
   transition: all 0.3s ease;
   color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
 }
 
-.refresh-btn:hover {
+.refresh-btn:hover,
+.test-btn:hover {
   background: #e2e8f0;
   color: #1a202c;
+}
+
+.test-btn {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  color: white;
+  border-color: #8b5cf6;
+}
+
+.test-btn:hover {
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  color: white;
 }
 
 /* Responsividade */
@@ -1868,6 +1910,7 @@ function onSupportLogin() { isSupport.value = true }
   .category-chart,
   .activity-panel,
   .performance-panel,
+  .database-panel,
   .quick-actions-panel {
     grid-column: span 1;
   }

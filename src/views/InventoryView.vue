@@ -23,6 +23,10 @@
               <RefreshCw :size="18" :class="{ 'animate-spin': loading }" />
               Atualizar
             </button>
+            <button @click="showChat = true" class="btn-secondary">
+              <MessageCircle :size="18" />
+              Chat IA
+            </button>
           </div>
         </div>
       </div>
@@ -580,6 +584,9 @@
         </div>
       </div>
     </section>
+
+    <!-- Chat IA Modal -->
+    <ChatInventoryModal v-model:open="showChat" />
   </div>
 </template>
 
@@ -611,6 +618,8 @@ import {
   Minus
 } from 'lucide-vue-next'
 import * as XLSX from 'xlsx'
+import ChatInventoryModal from '@/components/ChatInventoryModal.vue'
+import { MessageCircle } from 'lucide-vue-next'
 
 const authStore = useAuthStore()
 
@@ -629,6 +638,7 @@ const selectedIds = ref<string[]>([])
 const compactMode = ref(false)
 const pageSize = ref(12)
 const currentPage = ref(1)
+const showChat = ref(false)
 
 const productForm = ref({
   nome: '',
