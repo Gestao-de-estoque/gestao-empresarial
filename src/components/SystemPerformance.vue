@@ -144,6 +144,10 @@
             <Zap :size="14" :class="{ 'animate-pulse': isRunningBenchmark }" />
             {{ isRunningBenchmark ? 'Executando...' : 'Benchmark' }}
           </button>
+          <button @click="shareBenchmark" :disabled="!benchmarkResult" class="action-btn">
+            <Share2 :size="14" />
+            Compartilhar
+          </button>
         </div>
       </div>
     </div>
@@ -221,7 +225,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import {
   MonitorSpeaker, Smartphone, Tablet, Monitor, Zap, RefreshCw,
   Cpu, MemoryStick, HardDrive, Wifi, Battery,
-  Info, Gauge, X
+  Info, Gauge, X, Share2
 } from 'lucide-vue-next'
 import { systemMetricsService, type PerformanceMetrics, type DeviceInfo, type BenchmarkResult } from '@/services/systemMetricsService'
 
@@ -388,18 +392,17 @@ async function runBenchmark() {
   }
 }
 
-
+function shareBenchmark() {
+  if (!benchmarkResult.value) return
   const text = `Meu dispositivo obteve ${benchmarkResult.value.score} pontos no benchmark do GestãoZe System! Performance: ${getCategoryLabel(benchmarkResult.value.category)}`
-
   if (navigator.share) {
     navigator.share({
       title: 'Benchmark GestãoZe System',
-      text: text,
+      text,
       url: window.location.href
     })
   } else {
     navigator.clipboard.writeText(text)
-    // Aqui você pode mostrar uma notificação de que foi copiado
   }
 }
 
