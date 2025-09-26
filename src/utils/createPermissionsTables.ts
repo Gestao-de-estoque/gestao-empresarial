@@ -204,17 +204,17 @@ export async function testPermissionsConnection(): Promise<{ success: boolean; m
     console.log('🔍 Testando conexão com tabelas de permissões...')
 
     // Testar se as tabelas existem
-    const { data: rolesData, error: rolesError } = await supabase
+    const { error: rolesError } = await supabase
       .from('user_roles')
       .select('count(*)')
       .limit(1)
 
-    const { data: permissionsData, error: permissionsError } = await supabase
+    const { error: permissionsError } = await supabase
       .from('permissions')
       .select('count(*)')
       .limit(1)
 
-    const { data: rolePermissionsData, error: rolePermissionsError } = await supabase
+    const { error: rolePermissionsError } = await supabase
       .from('role_permissions')
       .select('count(*)')
       .limit(1)

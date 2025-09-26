@@ -8,7 +8,7 @@ export async function initializeAlertsTable() {
 
   try {
     // Verificar se a tabela já existe
-    const { data: existingTable, error: checkError } = await supabase
+    const { error: checkError } = await supabase
       .from('system_alerts')
       .select('id')
       .limit(1)
@@ -94,7 +94,7 @@ export async function testAlertsSystem() {
       created_at: new Date().toISOString()
     }
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('system_alerts')
       .insert([testAlert])
       .select()
@@ -134,7 +134,7 @@ export async function checkRLSPolicies() {
 
   try {
     // Tentar fazer uma consulta simples
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('system_alerts')
       .select('id')
       .limit(1)

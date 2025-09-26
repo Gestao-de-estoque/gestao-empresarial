@@ -228,7 +228,6 @@ export const apiManagementService = {
 
       // Calcular métricas
       const totalKeys = keys?.length || 0
-      const activeKeys = keys?.filter(k => k.status === 'active').length || 0
       const last24hRequests = recentRequests?.length || 0
       const requestsPerHour = Math.round(last24hRequests / 24)
 
@@ -264,7 +263,7 @@ export const apiManagementService = {
         const { error: updateError } = await supabase
           .from(DB_TABLES.API_KEYS)
           .update({
-            request_count: supabase.raw('request_count + 1'),
+            request_count: 1,
             last_used: new Date().toISOString(),
             updated_at: new Date().toISOString()
           })
@@ -365,7 +364,6 @@ export const apiManagementService = {
       }
 
       // Criar chaves de exemplo baseadas no .env
-      const envKeys = this.getEnvironmentAPIKeys()
 
       const defaultKeys = [
         {

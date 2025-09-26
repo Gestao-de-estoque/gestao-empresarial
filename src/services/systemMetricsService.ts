@@ -74,9 +74,7 @@ interface BenchmarkResult {
 }
 
 class SystemMetricsService {
-  private performanceObserver?: PerformanceObserver
   private cpuBenchmarkCache?: number
-  private lastCpuUsage = 0
   private cpuSamples: number[] = []
 
   /**
@@ -84,15 +82,15 @@ class SystemMetricsService {
    */
   getDeviceInfo(): DeviceInfo {
     const canvas = document.createElement('canvas')
-    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl')
+    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl') as WebGLRenderingContext | null
 
     let gpu = undefined
     if (gl) {
       const debugInfo = gl.getExtension('WEBGL_debug_renderer_info')
       if (debugInfo) {
         gpu = {
-          vendor: gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL),
-          renderer: gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL)
+          vendor: (gl as any).getParameter(debugInfo.UNMASKED_VENDOR_WEBGL),
+          renderer: (gl as any).getParameter(debugInfo.UNMASKED_RENDERER_WEBGL)
         }
       }
     }
@@ -211,7 +209,6 @@ class SystemMetricsService {
 
     if (performance && performance.memory) {
       const used = performance.memory.usedJSHeapSize / (1024 * 1024) // MB
-      const total = performance.memory.totalJSHeapSize / (1024 * 1024) // MB
       const limit = performance.memory.jsHeapSizeLimit / (1024 * 1024) // MB
 
       const available = limit - used

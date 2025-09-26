@@ -31,7 +31,7 @@ export interface AlertRule {
 }
 
 class AlertsService {
-  private readonly ALERT_RULES: AlertRule[] = [
+  private readonly alertRules: AlertRule[] = [
     {
       id: 'low_stock',
       name: 'Estoque Baixo',
@@ -392,7 +392,7 @@ class AlertsService {
 
       if (!categoriesError && categoriesWithoutProducts) {
         const emptyCategoriesCount = categoriesWithoutProducts.filter(cat =>
-          !cat.produtos || cat.produtos.length === 0
+          !(cat as any).produtos || (cat as any).produtos.length === 0
         ).length
 
         if (emptyCategoriesCount > 0) {

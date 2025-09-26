@@ -136,7 +136,7 @@
 
         <!-- Ações Rápidas -->
         <div class="quick-actions">
-          <button @click="activeTab = 'device'; showModal = true" class="action-btn secondary">
+          <button @click="showModal = true" class="action-btn secondary">
             <Info :size="14" />
             Detalhes do Dispositivo
           </button>
@@ -220,8 +220,8 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import {
   MonitorSpeaker, Smartphone, Tablet, Monitor, Zap, RefreshCw,
-  Cpu, MemoryStick, HardDrive, Wifi, Battery, Thermometer,
-  Info, Gauge, Play, Share2, X
+  Cpu, MemoryStick, HardDrive, Wifi, Battery,
+  Info, Gauge, X
 } from 'lucide-vue-next'
 import { systemMetricsService, type PerformanceMetrics, type DeviceInfo, type BenchmarkResult } from '@/services/systemMetricsService'
 
@@ -284,25 +284,7 @@ function getNetworkQualityLabel(quality?: string): string {
   return labels[quality as keyof typeof labels] || 'N/A'
 }
 
-function getThermalLabel(state?: string): string {
-  const labels = {
-    'nominal': 'Normal',
-    'fair': 'Aquecido',
-    'serious': 'Quente',
-    'critical': 'Crítico'
-  }
-  return labels[state as keyof typeof labels] || 'Normal'
-}
 
-function getThermalDescription(state?: string): string {
-  const descriptions = {
-    'nominal': 'Temperatura normal de operação',
-    'fair': 'Dispositivo ligeiramente aquecido',
-    'serious': 'Dispositivo aquecido, considere reduzir a carga',
-    'critical': 'Dispositivo muito quente, pode afetar a performance'
-  }
-  return descriptions[state as keyof typeof descriptions] || 'Estado térmico normal'
-}
 
 function getDeviceIcon() {
   if (!metrics.value) return Monitor
@@ -346,15 +328,6 @@ function formatBytes(mb: number): string {
   return `${mb.toFixed(0)}MB`
 }
 
-function formatTime(seconds: number): string {
-  const hours = Math.floor(seconds / 3600)
-  const minutes = Math.floor((seconds % 3600) / 60)
-
-  if (hours > 0) {
-    return `${hours}h ${minutes}m`
-  }
-  return `${minutes}m`
-}
 
 async function refreshMetrics() {
   isLoading.value = true
@@ -415,8 +388,6 @@ async function runBenchmark() {
   }
 }
 
-function shareResults() {
-  if (!benchmarkResult.value) return
 
   const text = `Meu dispositivo obteve ${benchmarkResult.value.score} pontos no benchmark do GestãoZe System! Performance: ${getCategoryLabel(benchmarkResult.value.category)}`
 

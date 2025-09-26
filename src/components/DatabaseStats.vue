@@ -344,7 +344,6 @@ import {
 } from 'lucide-vue-next'
 import { databaseStatsService, type DatabaseStats } from '@/services/databaseStatsService'
 import DatabaseAlert from './DatabaseAlert.vue'
-import DatabaseExplorer from './DatabaseExplorer.vue'
 
 // Estados reativos
 const stats = ref<DatabaseStats | null>(null)
@@ -385,9 +384,6 @@ const searchTerm = ref('')
 const viewMode = ref<'grid' | 'list'>('grid')
 
 // Computed
-const totalRecords = computed(() => {
-  return (stats.value?.tableStats || []).reduce((sum, table) => sum + table.rowCount, 0)
-})
 
 const filteredTables = computed(() => {
   if (!tablesInfo.value) return []

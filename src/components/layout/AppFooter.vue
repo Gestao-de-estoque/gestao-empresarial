@@ -290,8 +290,6 @@ const apkDownloadUrl = '/gestao_estoque.apk'
 const apkFileName = 'GestaoZe_v' + appVersion + '.apk'
 
 // URLs das lojas (opcional, mantém para futuro)
-const googlePlayUrl = (import.meta as any).env?.VITE_GOOGLE_PLAY_URL || apkDownloadUrl
-const appStoreUrl = (import.meta as any).env?.VITE_APP_STORE_URL || apkDownloadUrl
 
 // Função para download direto do APK
 function downloadAPK() {
@@ -320,13 +318,6 @@ function downloadViaQR() {
   downloadAPK()
 }
 
-function onBadgeError(e: Event) {
-  const el = e.target as HTMLImageElement
-  if (el) {
-    // Hide the broken image
-    el.style.display = 'none'
-  }
-}
 
 // Nome e descrição do sistema — configuráveis via env
 const siteName = (import.meta as any).env?.VITE_SITE_NAME || 'GestãoZe System'
