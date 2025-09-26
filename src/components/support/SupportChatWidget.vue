@@ -12,7 +12,7 @@
           <img :src="logoSrc" alt="logo" />
           <div class="text">
             <h3>Chat de Suporte</h3>
-            <small v-if="!supportUserId" class="warn">Configure VITE_SUPPORT_USER_ID</small>
+            <small v-if="!supportUserId" class="info">💬 Modo de auto-suporte ativo</small>
           </div>
         </div>
         <div class="actions">
@@ -22,7 +22,12 @@
       </header>
 
       <main class="panel-body">
-        <div v-if="!activeId && !loading" class="welcome">
+        <div v-if="loading" class="loading-state">
+          <div class="spinner"></div>
+          <p>Iniciando conversa...</p>
+        </div>
+
+        <div v-else-if="!activeId" class="welcome">
           <div class="hero">
             <img :src="logoSrc" alt="logo" />
             <h4>Bem-vindo ao Suporte</h4>
@@ -33,10 +38,15 @@
             <li><strong>2.</strong> Escreva sua mensagem e envie</li>
             <li><strong>3.</strong> Acompanhe respostas em tempo real</li>
           </ul>
-          <button class="btn primary" :disabled="!supportUserId" @click="startConversation">Iniciar conversa</button>
+          <button class="btn primary" :disabled="loading" @click="startConversation">
+            Iniciar conversa
+          </button>
         </div>
 
         <div v-else class="thread" ref="threadRef">
+          <div v-if="messages.length === 0" class="empty-conversation">
+            <p>💬 Conversa iniciada! Digite sua primeira mensagem abaixo.</p>
+          </div>
           <div v-for="m in messages" :key="m.id" class="message" :class="m.sender_role">
             <div class="bubble">
               <div class="content">{{ m.content }}</div>
@@ -51,9 +61,23 @@
         <button class="btn primary" :disabled="!draft.trim()" @click="send">Enviar</button>
       </footer>
 
-      <div class="support-panel-entry">
-        <span>Precisa de recursos avançados?</span>
-        <button class="link" @click="openSupportPanel">Entrar no painel do suporte</button>
+      <div class="support-options">
+        <div class="option-item">
+          <span>Precisa de recursos avançados?</span>
+          <button class="link" @click="openSupportPanel">Entrar no painel do suporte</button>
+        </div>
+        <div class="option-item">
+          <span>Reportar um bug?</span>
+          <button class="link" @click="startBugReport">Reportar problema</button>
+        </div>
+        <div class="option-item">
+          <span>Solicitar nova funcionalidade?</span>
+          <button class="link" @click="startFeatureRequest">Solicitar recurso</button>
+        </div>
+        <div class="option-item">
+          <span>Documentação e ajuda?</span>
+          <button class="link" @click="openHelp">Ver documentação</button>
+        </div>
       </div>
     </div>
     <Teleport to="body">
@@ -90,6 +114,23 @@ supportAuth.restore()
 const supportUserId = (import.meta as any).env?.VITE_SUPPORT_USER_ID || ''
 const logoSrc = props.logo || '/restaurante.jpeg'
 
+// Criar um ID de sessão consistente
+const sessionUserId = ref<string>('')
+
+function generateSessionUserId() {
+  if (sessionUserId.value) return sessionUserId.value
+
+  // Se temos um user ID válido, usar ele
+  if (auth.user?.id && auth.user.id.length > 10) {
+    sessionUserId.value = auth.user.id
+    return sessionUserId.value
+  }
+
+  // Caso contrário, gerar um ID único para esta sessão
+  sessionUserId.value = 'session-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9)
+  return sessionUserId.value
+}
+
 function toggle() { open.value = !open.value }
 
 function scrollToBottom() {
@@ -100,36 +141,90 @@ function scrollToBottom() {
 }
 
 async function loadConversations() {
-  loading.value = true
-  const uid = auth.user?.id
-  if (!uid) { loading.value = false; return }
-  conversations.value = await supportChatService.listConversations(uid)
-  loading.value = false
+  const uid = generateSessionUserId()
+
+  try {
+    conversations.value = await supportChatService.listConversations(uid)
+  } catch (error) {
+    console.error('Error loading conversations:', error)
+  }
 }
 
 async function startConversation() {
-  if (!supportUserId) return
-  const adminId = auth.user?.id
-  if (!adminId) return
-  const id = await supportChatService.createConversation('Suporte', adminId, supportUserId)
-  await loadConversations()
-  await openConversation(id)
+  const adminId = generateSessionUserId()
+
+  // Validar se supportUserId é um UUID válido ou deixar vazio
+  let targetSupportId = adminId // Default: usar o próprio admin
+
+  if (supportUserId && supportUserId.length > 10) {
+    // Se há um supportUserId configurado e parece ser um UUID, usar ele
+    targetSupportId = supportUserId
+  }
+
+  try {
+    loading.value = true
+    const id = await supportChatService.createConversation('Suporte', adminId, targetSupportId)
+    await loadConversations()
+    await openConversation(id)
+
+    // Enviar mensagem de boas-vindas automática se houver usuário de suporte diferente
+    if (targetSupportId !== adminId) {
+      setTimeout(async () => {
+        try {
+          await supportChatService.sendMessage(id, targetSupportId, 'support', 'Olá! Bem-vindo ao nosso sistema de suporte. Como posso ajudá-lo hoje?')
+        } catch (error) {
+          console.warn('Could not send welcome message:', (error as any)?.message || error)
+        }
+      }, 500)
+    } else {
+      // Modo auto-suporte: enviar mensagem explicativa
+      setTimeout(async () => {
+        try {
+          await supportChatService.sendMessage(id, adminId, 'support', 'Sistema de suporte em modo auto-atendimento. Você pode usar este chat para documentar questões e soluções.')
+        } catch (error) {
+          console.warn('Could not send info message:', (error as any)?.message || error)
+        }
+      }, 500)
+    }
+  } catch (error) {
+    console.error('Erro ao iniciar conversa:', error)
+    alert('Erro ao iniciar conversa: ' + ((error as any)?.message || error))
+  } finally {
+    loading.value = false
+  }
 }
 
 async function openConversation(id: string) {
-  activeId.value = id
-  messages.value = await supportChatService.getMessages(id)
-  if (unsubscribe) unsubscribe()
-  unsubscribe = supportChatService.onMessages(id, (msg) => { messages.value.push(msg); scrollToBottom() })
-  scrollToBottom()
+  try {
+    activeId.value = id
+    messages.value = await supportChatService.getMessages(id)
+
+    if (unsubscribe) unsubscribe()
+    unsubscribe = supportChatService.onMessages(id, (msg) => {
+      messages.value.push(msg)
+      scrollToBottom()
+    })
+
+    scrollToBottom()
+  } catch (error) {
+    console.error('Error opening conversation:', error)
+    alert('Erro ao abrir conversa: ' + ((error as any)?.message || error))
+  }
 }
 
 async function send() {
   const content = draft.value.trim()
   if (!content || !activeId.value) return
-  const senderId = auth.user?.id!
-  await supportChatService.sendMessage(activeId.value, senderId, 'admin', content)
-  draft.value = ''
+
+  const senderId = generateSessionUserId()
+
+  try {
+    await supportChatService.sendMessage(activeId.value, senderId, 'admin', content)
+    draft.value = ''
+  } catch (error) {
+    console.error('Error sending message:', error)
+    alert('Erro ao enviar mensagem: ' + ((error as any)?.message || error))
+  }
 }
 
 function formatTime(s: string) {
@@ -168,6 +263,48 @@ function goSupport() {
   supportAuthOpen.value = false
   router.push('/support')
 }
+
+function startBugReport() {
+  const adminId = generateSessionUserId()
+
+  let targetSupportId = adminId
+  if (supportUserId && supportUserId.length > 10) {
+    targetSupportId = supportUserId
+  }
+
+  supportChatService.createConversation('Bug Report', adminId, targetSupportId)
+    .then(id => {
+      loadConversations()
+      openConversation(id)
+    })
+    .catch(error => {
+      console.error('Error creating bug report:', error)
+      alert('Erro ao criar relatório de bug: ' + ((error as any)?.message || error))
+    })
+}
+
+function startFeatureRequest() {
+  const adminId = generateSessionUserId()
+
+  let targetSupportId = adminId
+  if (supportUserId && supportUserId.length > 10) {
+    targetSupportId = supportUserId
+  }
+
+  supportChatService.createConversation('Solicitação de Recurso', adminId, targetSupportId)
+    .then(id => {
+      loadConversations()
+      openConversation(id)
+    })
+    .catch(error => {
+      console.error('Error creating feature request:', error)
+      alert('Erro ao criar solicitação: ' + ((error as any)?.message || error))
+    })
+}
+
+function openHelp() {
+  window.open('https://docs.example.com', '_blank')
+}
 </script>
 
 <style scoped>
@@ -176,16 +313,17 @@ function goSupport() {
 .launcher .glow { position:absolute; inset:-6px; border-radius:999px; background: radial-gradient(circle at 20% 50%, rgba(102,126,234,.35), transparent 40%); filter: blur(8px); z-index:-1 }
 .launcher img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border:2px solid #fff; box-shadow: 0 4px 12px rgba(0,0,0,.15) }
 .launcher .label { font-weight: 900; color: #111827; letter-spacing: .2px }
-.support-widget.open .launcher { transform: translateY(-6px); box-shadow: 0 14px 36px rgba(0,0,0,.2) }
+.support-widget.open .launcher { display: none; }
 
-.panel { width: 380px; height: 560px; background: var(--theme-surface); border:1px solid var(--theme-border); border-radius: 16px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,.25); margin-top: 12px; backdrop-filter: blur(6px) }
+.panel { width: 380px; height: 640px; background: var(--theme-surface); border:1px solid var(--theme-border); border-radius: 16px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,.25); margin-top: 12px; backdrop-filter: blur(6px) }
 .panel-header { display:flex; align-items:center; justify-content:space-between; padding: 10px 12px; background: linear-gradient(135deg, #667eea, #764ba2); color: #fff }
 .panel-header .title { display:flex; align-items:center; gap: 10px; }
 .panel-header img { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; border:2px solid rgba(255,255,255,.8) }
 .panel-header h3 { margin:0; font-size: 14px; letter-spacing:.2px }
-.panel-header .warn { color: #fde68a }
+.panel-header .error { color: #fecaca; font-size: 11px; font-weight: 500; }
+.panel-header .info { color: #bfdbfe; font-size: 11px; font-weight: 500; }
 .panel-header .btn { padding: 6px 10px; border-radius: 8px; background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.35); color:#fff; cursor:pointer }
-.panel-body { height: 430px; background: radial-gradient(ellipse at 20% 10%, rgba(102,126,234,.06), transparent 60%), var(--theme-background); }
+.panel-body { height: 510px; background: radial-gradient(ellipse at 20% 10%, rgba(102,126,234,.06), transparent 60%), var(--theme-background); }
 .welcome { padding: 18px; display:flex; flex-direction:column; gap:14px; height:100%; align-items:center; justify-content:center; text-align:center }
 .welcome .hero img { width: 54px; height: 54px; border-radius:50%; border:2px solid rgba(0,0,0,.06) }
 .welcome .hero h4 { margin: 8px 0 4px 0 }
@@ -201,6 +339,43 @@ function goSupport() {
 .time { font-size: 10px; opacity:.8; margin-top:4px; text-align:right }
 .composer { display:flex; gap:8px; padding: 10px; border-top:1px solid var(--theme-border); background: var(--theme-surface) }
 .composer input { flex:1; padding: 10px 12px; border-radius: 10px; border:1px solid var(--theme-border); background: var(--theme-background) }
-.support-panel-entry { display:flex; align-items:center; justify-content:center; gap:6px; padding: 8px; font-size: 12px; color: var(--theme-text-secondary) }
-.support-panel-entry .link { background: none; border: none; color: #6366f1; font-weight: 800; cursor: pointer; }
+.support-options { padding: 8px; border-top: 1px solid var(--theme-border); background: var(--theme-surface); }
+.option-item { display:flex; align-items:center; justify-content:space-between; gap:8px; padding: 6px 8px; font-size: 12px; color: var(--theme-text-secondary); border-radius: 6px; }
+.option-item:hover { background: rgba(102, 126, 234, 0.05); }
+.option-item .link { background: none; border: none; color: #6366f1; font-weight: 600; cursor: pointer; font-size: 11px; padding: 2px 0; }
+.option-item .link:hover { text-decoration: underline; }
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 16px;
+  color: var(--theme-text-secondary);
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--theme-border);
+  border-top: 3px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.empty-conversation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  text-align: center;
+  color: var(--theme-text-secondary);
+  font-style: italic;
+}
 </style>

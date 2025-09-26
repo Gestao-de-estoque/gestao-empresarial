@@ -1,5 +1,6 @@
 import { supabase, DB_TABLES } from '@/config/supabase'
 import { authService } from '@/services/authService'
+import { reportService } from '@/services/reportService'
 
 export interface SystemLog {
   id?: number
@@ -338,6 +339,8 @@ class LogService {
         return await this.commandStatus(args)
       case 'backup':
         return await this.commandBackup(args)
+      case 'report':
+        return await this.commandReport(args)
       case 'help':
         return this.commandHelp(args)
       case 'export':
@@ -435,6 +438,7 @@ class LogService {
       'users': 'Lista usuários ativos',
       'status': 'Status do sistema',
       'backup': 'Inicia backup de logs',
+      'report': 'Gera e baixa relatório técnico (--days N --format pdf|md|html|json|excel)',
       'export': 'Exporta dados (--format csv|json, --days N)',
       'search': 'Busca nos logs (--query TEXTO)',
       'monitor': 'Monitor em tempo real (--category CAT)',
@@ -445,6 +449,78 @@ class LogService {
       message: 'Comandos disponíveis:',
       data: commands
     }
+  }
+
+  private async commandReport(args: string[]): Promise<{ message: string; data?: any }> {
+    const days = args.includes('--days') ? parseInt(args[args.indexOf('--days') + 1]) || 30 : 30
+    const format = args.includes('--format') ? (args[args.indexOf('--format') + 1] || 'pdf').toLowerCase() : 'pdf'
+
+    // Suporte rápido a MD via gerador técnico existente
+    if (format === 'md' || format === 'markdown') {
+      const report = await this.generateTechnicalReport(days)
+      try {
+        const blob = new Blob([report], { type: 'text/markdown' })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        const filename = `relatorio-tecnico-${days}d-${new Date().toISOString().split('T')[0]}.md`
+        a.href = url
+        a.download = filename
+        a.click()
+        URL.revokeObjectURL(url)
+        return { message: `Relatório técnico (${days} dias) gerado (Markdown)`, data: { filename, size: report.length } }
+      } catch (e) {
+        return { message: `Relatório técnico (${days} dias) gerado (Markdown). Download indisponível.`, data: { report } }
+      }
+    }
+
+    // Demais formatos via reportService (pdf, html, json, excel)
+    const now = new Date()
+    const end = now.toISOString()
+    const start = new Date(now.getTime() - days * 24 * 60 * 60 * 1000).toISOString()
+
+    const config = {
+      title: 'Relatório Técnico do Sistema',
+      subtitle: `Período: ${days} dias`,
+      period: { start, end, days },
+      includeCharts: true,
+      includeDetails: true,
+      includeRecommendations: true,
+      format: (['pdf','html','json','excel'].includes(format) ? format : 'pdf') as any,
+      template: 'technical' as const
+    }
+
+    // Gera dados do relatório e exporta
+    const reportData = await reportService.generateReport(config)
+
+    let blob: Blob
+    let ext = 'pdf'
+    if (format === 'pdf') {
+      blob = await reportService.exportReport(reportData, 'pdf')
+      ext = 'pdf'
+    } else if (format === 'html') {
+      blob = await reportService.exportReport(reportData, 'html')
+      ext = 'html'
+    } else if (format === 'json') {
+      blob = await reportService.exportReport(reportData, 'json')
+      ext = 'json'
+    } else if (format === 'excel' || format === 'xlsx') {
+      blob = await reportService.exportReport(reportData, 'excel')
+      ext = 'xlsx'
+    } else {
+      // fallback para pdf
+      blob = await reportService.exportReport(reportData, 'pdf')
+      ext = 'pdf'
+    }
+
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    const filename = `relatorio-tecnico-${days}d-${new Date().toISOString().split('T')[0]}.${ext}`
+    a.href = url
+    a.download = filename
+    a.click()
+    URL.revokeObjectURL(url)
+
+    return { message: `Relatório técnico (${days} dias) gerado (${ext.toUpperCase()})`, data: { filename } }
   }
 
   private async commandExport(args: string[]): Promise<{ message: string; data?: any }> {

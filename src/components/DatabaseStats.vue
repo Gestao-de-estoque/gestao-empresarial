@@ -22,6 +22,12 @@
       </div>
 
       <div class="panel-content">
+        <div class="tabs">
+          <button class="tab" :class="{active: activeTab==='overview'}" @click="activeTab='overview'">Resumo</button>
+          <button class="tab" :class="{active: activeTab==='explorer'}" @click="activeTab='explorer'">Explorar</button>
+        </div>
+
+        <div v-if="activeTab==='overview'">
         <!-- Indicador de Uso Principal -->
         <div class="usage-section">
           <div class="usage-header">
@@ -155,6 +161,11 @@
             Atualizar
           </button>
         </div>
+        </div>
+
+        <div v-else>
+          <DatabaseExplorer />
+        </div>
       </div>
 
       <!-- Loading Overlay -->
@@ -185,6 +196,7 @@ import {
 } from 'lucide-vue-next'
 import { databaseStatsService, type DatabaseStats } from '@/services/databaseStatsService'
 import DatabaseAlert from './DatabaseAlert.vue'
+import DatabaseExplorer from './DatabaseExplorer.vue'
 
 // Estados reativos
 const stats = ref<DatabaseStats | null>(null)
@@ -194,6 +206,7 @@ const isLoading = ref(false)
 const error = ref(false)
 const showDetails = ref(false)
 const showRecommendations = ref(false)
+const activeTab = ref<'overview' | 'explorer'>('overview')
 
 // Computed
 const totalRecords = computed(() => {

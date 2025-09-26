@@ -1,7 +1,10 @@
 <template>
   <div id="app">
     <HamburgerMenu :show="shouldShowMenu" />
-    <router-view />
+    <main class="app-content">
+      <router-view />
+    </main>
+    <AppFooter />
   </div>
 </template>
 
@@ -10,6 +13,7 @@ import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useThemeStore } from '@/stores/theme'
 import HamburgerMenu from '@/components/HamburgerMenu.vue'
+import AppFooter from '@/components/layout/AppFooter.vue'
 
 const route = useRoute()
 const themeStore = useThemeStore()
@@ -48,9 +52,16 @@ onMounted(() => {
 
 #app {
   width: 100%;
-  height: 100vh;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
   background: var(--theme-background);
   transition: background 0.3s ease;
+}
+
+.app-content {
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 body {

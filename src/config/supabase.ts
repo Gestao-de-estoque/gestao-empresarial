@@ -25,5 +25,11 @@ export const DB_TABLES = {
   WEEKLY_PLANNING: 'planejamento_semanal',
   SUPPLIERS: 'suppliers',
   SETTINGS: 'app_settings',
-  FINANCIAL: 'financial_data'
+  FINANCIAL: 'financial_data',
+  ROLES: 'user_roles',
+  PERMISSIONS: 'permissions',
+  ROLE_PERMISSIONS: 'role_permissions',
+  API_KEYS: 'api_keys',
+  API_REQUESTS: 'api_requests',
+  API_METRICS: 'api_metrics'
 }

@@ -1,5 +1,12 @@
 /* Advanced Logs System - Professional CSS */
 
+/* Background harmonized with Dashboard */
+.logs-view {
+  min-height: 100vh;
+  background: var(--theme-background);
+  color: var(--theme-text-primary);
+}
+
 /* Header */
 .logs-header {
   text-align: center;

@@ -165,8 +165,8 @@
           <button @click="toggleRealTimeUpdates" :class="{ active: realTimeUpdates }" class="realtime-btn">
             <i class="fas fa-wifi"></i> {{ realTimeUpdates ? 'Pausar' : 'Tempo Real' }}
           </button>
-          <button @click="exportAdvanced" class="export-btn">
-            <i class="fas fa-download"></i> Exportar
+          <button @click="downloadCSV" class="export-btn">
+            <i class="fas fa-file-csv"></i> Exportar CSV
           </button>
           <button @click="refreshData" class="refresh-btn">
             <i class="fas fa-sync-alt"></i> Atualizar
@@ -361,14 +361,36 @@
           </button>
         </div>
         <div class="modal-content report-content">
+          <div class="report-toolbar">
+            <label for="report-days"><i class="fas fa-calendar-alt"></i> Período:</label>
+            <select id="report-days" v-model="reportDays" @change="regenerateReport" class="report-days-select">
+              <option :value="7">7 dias</option>
+              <option :value="14">14 dias</option>
+              <option :value="30">30 dias</option>
+              <option :value="90">90 dias</option>
+            </select>
+            <button @click="regenerateReport" class="regen-btn">
+              <i class="fas fa-sync-alt"></i> Atualizar
+            </button>
+          </div>
           <div v-if="isGeneratingReport" class="generating-report">
             <i class="fas fa-cog fa-spin"></i>
             <p>Gerando relatório profissional...</p>
           </div>
           <div v-else-if="generatedReport" class="report-viewer">
             <div class="report-actions">
+              <div class="report-format">
+                <label for="report-format"><i class="fas fa-file-export"></i> Formato:</label>
+                <select id="report-format" v-model="reportFormat" class="report-format-select">
+                  <option value="pdf">PDF</option>
+                  <option value="md">Markdown</option>
+                  <option value="html">HTML</option>
+                  <option value="excel">Excel</option>
+                  <option value="json">JSON</option>
+                </select>
+              </div>
               <button @click="downloadReport" class="download-btn">
-                <i class="fas fa-download"></i> Download PDF
+                <i class="fas fa-download"></i> Baixar {{ reportFormatLabel }}
               </button>
               <button @click="copyReport" class="copy-btn">
                 <i class="fas fa-copy"></i> Copiar Texto
@@ -385,6 +407,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, nextTick, onBeforeUnmount } from 'vue'
 import { logService, type SystemLog, type LogStatistics, type CommandResult } from '@/services/logService'
+import { reportService } from '@/services/reportService'
 
 // Estados principais
 const logs = ref<SystemLog[]>([])
@@ -430,6 +453,15 @@ const selectedLog = ref<SystemLog | null>(null)
 const showReportModal = ref(false)
 const isGeneratingReport = ref(false)
 const generatedReport = ref('')
+const reportDays = ref(30)
+const reportFormat = ref<'pdf' | 'html' | 'excel' | 'json' | 'md'>('pdf')
+const reportFormatLabel = computed(() => ({
+  pdf: 'PDF',
+  html: 'HTML',
+  excel: 'Excel',
+  json: 'JSON',
+  md: 'Markdown'
+})[reportFormat.value])
 const searchDebounceTimer = ref<number>()
 
 // Estados computados
@@ -563,7 +595,7 @@ const nextCommand = () => {
 }
 
 const autoComplete = () => {
-  const availableCommands = ['logs', 'stats', 'clear', 'users', 'status', 'backup', 'help', 'export', 'search', 'monitor']
+  const availableCommands = ['logs', 'stats', 'clear', 'users', 'status', 'backup', 'help', 'export', 'search', 'monitor', 'report']
   const currentInput = currentCommand.value.toLowerCase()
 
   const matches = availableCommands.filter(cmd => cmd.startsWith(currentInput))
@@ -639,15 +671,113 @@ const closeModal = () => {
   selectedLog.value = null
 }
 
-const exportAdvanced = async () => {
+// exportAdvanced substituído por downloadCSV diretamente no botão
+
+const downloadCSV = async () => {
   try {
-    const result = await logService.executeCommand('export', ['--format', 'json', '--days', '7'])
-    if (result.success) {
-      addTerminalEntry('success', 'Exportação iniciada', new Date().toISOString())
+    addTerminalEntry('output', 'Preparando exportação CSV dos logs filtrados...', new Date().toISOString())
+
+    const perPage = 1000
+    const CSV_EXPORT_MAX = Number(((import.meta as any).env?.VITE_CSV_EXPORT_MAX)) || 100000
+    const CSV_EXPORT_WARN = Number(((import.meta as any).env?.VITE_CSV_EXPORT_WARN)) || 10000
+    const collected: SystemLog[] = []
+
+    // Base de filtros atuais (converter simples -> array)
+    const baseFilters: any = { ...filters.value }
+    if (baseFilters.severity && typeof baseFilters.severity === 'string') baseFilters.severity = [baseFilters.severity]
+    if (baseFilters.category && typeof baseFilters.category === 'string') baseFilters.category = [baseFilters.category]
+
+    const estimated = totalLogs.value || 0
+
+    if (estimated === 0) {
+      addTerminalEntry('error', 'Nenhum log para exportar.', new Date().toISOString())
+      return
     }
+
+    let total = Math.min(estimated, CSV_EXPORT_MAX)
+
+    if (estimated > CSV_EXPORT_MAX) {
+      addTerminalEntry('error', `Limite máximo de exportação atingido (${CSV_EXPORT_MAX} linhas). Refine os filtros para exportar tudo.`, new Date().toISOString())
+    }
+
+    if (total > CSV_EXPORT_WARN) {
+      const proceed = window.confirm(`Serão exportados aproximadamente ${total} registros. Isso pode demorar e gerar um arquivo grande. Deseja continuar?`)
+      if (!proceed) {
+        addTerminalEntry('output', 'Exportação CSV cancelada pelo usuário.', new Date().toISOString())
+        return
+      }
+    }
+
+    const loops = Math.ceil(total / perPage) || 1
+
+    for (let i = 0; i < loops; i++) {
+      const offset = i * perPage
+      const { data } = await logService.getLogs({ ...baseFilters, limit: perPage, offset })
+      if (data?.length) collected.push(...data)
+      if (collected.length >= total) break
+    }
+
+    if (!collected.length) {
+      addTerminalEntry('error', 'Nenhum log para exportar com os filtros atuais.', new Date().toISOString())
+      return
+    }
+
+    const csv = buildCSV(collected)
+    const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    const ts = new Date().toISOString().replace(/[:T]/g, '-').split('.')[0]
+    a.href = url
+    a.download = `logs-export-${ts}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+
+    addTerminalEntry('success', `CSV gerado com ${collected.length} registros`, new Date().toISOString())
   } catch (error: any) {
-    addTerminalEntry('error', `Erro na exportação: ${error.message}`, new Date().toISOString())
+    addTerminalEntry('error', `Falha ao gerar CSV: ${error.message}`, new Date().toISOString())
   }
+}
+
+const csvEscape = (value: any): string => {
+  if (value === null || value === undefined) return ''
+  let str = typeof value === 'string' ? value : String(value)
+  // Normaliza quebras de linha
+  str = str.replace(/\r?\n|\r/g, ' ')
+  if (/[",\n]/.test(str)) {
+    str = '"' + str.replace(/"/g, '""') + '"'
+  }
+  return str
+}
+
+const buildCSV = (rows: SystemLog[]): string => {
+  const headers = [
+    'timestamp', 'category', 'severity', 'action', 'username', 'resource', 'resource_id',
+    'status', 'execution_time', 'ip_address', 'user_agent', 'details', 'metadata'
+  ]
+  const lines = [headers.join(',')]
+
+  for (const log of rows) {
+    const detailsStr = JSON.stringify(log.details ?? {})
+    const metadataStr = JSON.stringify(log.metadata ?? {})
+    const line = [
+      csvEscape(log.created_at || (log as any).timestamp || ''),
+      csvEscape(log.category || ''),
+      csvEscape(log.severity || ''),
+      csvEscape(log.action || ''),
+      csvEscape(log.username || ''),
+      csvEscape(log.resource || ''),
+      csvEscape(log.resource_id ?? ''),
+      csvEscape(log.status || ''),
+      csvEscape(log.execution_time ?? ''),
+      csvEscape(log.ip_address || ''),
+      csvEscape(log.user_agent || ''),
+      csvEscape(detailsStr),
+      csvEscape(metadataStr)
+    ]
+    lines.push(line.join(','))
+  }
+
+  return lines.join('\n')
 }
 
 const generateReport = async () => {
@@ -655,7 +785,7 @@ const generateReport = async () => {
   isGeneratingReport.value = true
 
   try {
-    generatedReport.value = await logService.generateTechnicalReport(30)
+    generatedReport.value = await logService.generateTechnicalReport(reportDays.value)
     addTerminalEntry('success', 'Relatório técnico gerado com sucesso', new Date().toISOString())
   } catch (error: any) {
     addTerminalEntry('error', `Erro ao gerar relatório: ${error.message}`, new Date().toISOString())
@@ -669,14 +799,52 @@ const closeReportModal = () => {
   generatedReport.value = ''
 }
 
-const downloadReport = () => {
-  const blob = new Blob([generatedReport.value], { type: 'text/markdown' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `relatorio-sistema-${new Date().toISOString().split('T')[0]}.md`
-  a.click()
-  URL.revokeObjectURL(url)
+const downloadReport = async () => {
+  try {
+    const now = new Date()
+    const end = now.toISOString()
+    const start = new Date(now.getTime() - reportDays.value * 24 * 60 * 60 * 1000).toISOString()
+
+    if (reportFormat.value === 'md') {
+      // Download do preview em Markdown
+      const blob = new Blob([generatedReport.value], { type: 'text/markdown' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `relatorio-sistema-${new Date().toISOString().split('T')[0]}.md`
+      a.click()
+      URL.revokeObjectURL(url)
+      addTerminalEntry('success', 'Relatório Markdown baixado', new Date().toISOString())
+      return
+    }
+
+    const config = {
+      title: 'Relatório Técnico do Sistema',
+      subtitle: `Período: ${reportDays.value} dias`,
+      period: { start, end, days: reportDays.value },
+      includeCharts: true,
+      includeDetails: true,
+      includeRecommendations: true,
+      format: reportFormat.value as any,
+      template: 'technical' as const
+    }
+
+    const reportData = await reportService.generateReport(config)
+    const fmt = reportFormat.value === 'excel' ? 'excel' : reportFormat.value
+    const ext = reportFormat.value === 'excel' ? 'xlsx' : reportFormat.value
+    const blob = await reportService.exportReport(reportData, fmt as 'pdf' | 'excel' | 'html' | 'json')
+
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `relatorio-sistema-${new Date().toISOString().split('T')[0]}.${ext}`
+    a.click()
+    URL.revokeObjectURL(url)
+
+    addTerminalEntry('success', `Relatório ${reportFormatLabel.value} baixado`, new Date().toISOString())
+  } catch (error: any) {
+    addTerminalEntry('error', `Falha ao baixar PDF: ${error.message}`, new Date().toISOString())
+  }
 }
 
 const copyReport = async () => {
@@ -685,6 +853,18 @@ const copyReport = async () => {
     addTerminalEntry('success', 'Relatório copiado para a área de transferência', new Date().toISOString())
   } catch (error) {
     console.error('Erro ao copiar:', error)
+  }
+}
+
+const regenerateReport = async () => {
+  isGeneratingReport.value = true
+  try {
+    generatedReport.value = await logService.generateTechnicalReport(reportDays.value)
+    addTerminalEntry('success', `Relatório atualizado para ${reportDays.value} dias`, new Date().toISOString())
+  } catch (error: any) {
+    addTerminalEntry('error', `Erro ao atualizar relatório: ${error.message}`, new Date().toISOString())
+  } finally {
+    isGeneratingReport.value = false
   }
 }
 

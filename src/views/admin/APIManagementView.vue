@@ -12,6 +12,14 @@
           <p class="page-subtitle">Gerencie chaves de API e integrações externas</p>
         </div>
         <div class="header-actions">
+          <button @click="loadData" :disabled="loading" class="btn-secondary">
+            <RefreshCw :size="16" :class="{ 'animate-spin': loading }" />
+            Atualizar
+          </button>
+          <button @click="showPlayground = !showPlayground" class="btn-secondary">
+            <Code :size="20" />
+            {{ showPlayground ? 'Ocultar' : 'Mostrar' }} Playground
+          </button>
           <button @click="generateNewKey" class="btn-primary">
             <Plus :size="20" />
             Nova Chave API
@@ -60,7 +68,8 @@
               <div class="api-key-id">{{ key.key }}</div>
               <div class="api-key-meta">
                 <span>Criada em {{ formatDate(key.created_at) }}</span>
-                <span>{{ key.requests }} requests</span>
+                <span>{{ key.request_count || 0 }} requests</span>
+                <span>Limite: {{ key.rate_limit || 1000 }}/h</span>
                 <span class="status" :class="key.status">{{ key.status === 'active' ? 'Ativa' : 'Inativa' }}</span>
               </div>
             </div>
@@ -79,15 +88,33 @@
         </div>
       </div>
 
+      <!-- API Playground -->
+      <div v-if="showPlayground" class="api-playground-section">
+        <h2>API Playground</h2>
+        <APIPlayground />
+      </div>
+
       <!-- Logs de API -->
       <div class="api-logs-section">
         <h2>Logs de Requisições</h2>
-        <div class="logs-list">
+        <div v-if="loading" class="loading-state">
+          <div class="spinner"></div>
+          <p>Carregando logs...</p>
+        </div>
+        <div v-else-if="error" class="error-state">
+          <p>{{ error }}</p>
+          <button @click="loadData" class="btn-primary">Tentar Novamente</button>
+        </div>
+        <div v-else class="logs-list">
+          <div v-if="apiLogs.length === 0" class="empty-logs">
+            <p>📝 Nenhum log de requisição encontrado</p>
+            <p>Os logs aparecerão aqui quando as APIs forem utilizadas</p>
+          </div>
           <div v-for="log in apiLogs" :key="log.id" class="log-item">
             <div class="log-method" :class="log.method">{{ log.method }}</div>
             <div class="log-endpoint">{{ log.endpoint }}</div>
-            <div class="log-status" :class="getStatusClass(log.status)">{{ log.status }}</div>
-            <div class="log-time">{{ formatDate(log.timestamp) }}</div>
+            <div class="log-status" :class="getStatusClass(log.status_code || log.status)">{{ log.status_code || log.status }}</div>
+            <div class="log-time">{{ formatDate(log.created_at || log.timestamp) }}</div>
           </div>
         </div>
       </div>
@@ -96,111 +123,180 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import HamburgerMenu from '@/components/HamburgerMenu.vue'
-import { Globe, Plus, Key, Activity, CheckCircle, Copy, Power, Trash2 } from 'lucide-vue-next'
+import APIPlayground from '@/components/docs/APIPlayground.vue'
+import { Globe, Plus, Key, Activity, CheckCircle, Copy, Power, Trash2, Code, RefreshCw } from 'lucide-vue-next'
+import { apiManagementService, type APIKey, type APIRequest, type APIStats } from '@/services/apiManagementService'
 
-const apiStats = ref({
-  totalKeys: 5,
-  requests: 1247,
-  uptime: 99.8
+// Estados reais da aplicação
+const apiStats = ref<APIStats>({
+  totalKeys: 0,
+  requests: 0,
+  uptime: 0,
+  errors: 0,
+  avgResponseTime: 0
 })
 
-const apiKeys = ref([
-  {
-    id: 1,
-    name: 'Integração Principal',
-    key: 'sk_live_abcd1234567890efghijklmnop',
-    created_at: new Date('2024-01-15'),
-    requests: 15420,
-    status: 'active'
-  },
-  {
-    id: 2,
-    name: 'App Mobile',
-    key: 'sk_live_zyxw9876543210fedcba098765',
-    created_at: new Date('2024-01-10'),
-    requests: 8765,
-    status: 'active'
-  },
-  {
-    id: 3,
-    name: 'Webhook Pagamentos',
-    key: 'sk_live_qwer1234asdf5678zxcv9012mn',
-    created_at: new Date('2024-01-05'),
-    requests: 2341,
-    status: 'inactive'
-  }
-])
+const apiKeys = ref<APIKey[]>([])
+const apiLogs = ref<APIRequest[]>([])
+const loading = ref(false)
+const error = ref('')
+const showPlayground = ref(false)
 
-const apiLogs = ref([
-  {
-    id: 1,
-    method: 'GET',
-    endpoint: '/api/v1/products',
-    status: 200,
-    timestamp: new Date('2024-01-20T10:30:00')
-  },
-  {
-    id: 2,
-    method: 'POST',
-    endpoint: '/api/v1/orders',
-    status: 201,
-    timestamp: new Date('2024-01-20T10:29:45')
-  },
-  {
-    id: 3,
-    method: 'PUT',
-    endpoint: '/api/v1/inventory/123',
-    status: 200,
-    timestamp: new Date('2024-01-20T10:29:30')
-  },
-  {
-    id: 4,
-    method: 'DELETE',
-    endpoint: '/api/v1/products/456',
-    status: 404,
-    timestamp: new Date('2024-01-20T10:29:15')
-  }
-])
+// Estados dos modais
+const showNewKeyModal = ref(false)
+const newKeyForm = ref({
+  name: '',
+  description: '',
+  permissions: ['read'],
+  rate_limit: 1000
+})
 
-function formatDate(date: Date): string {
+// Inicialização dos dados
+onMounted(async () => {
+  await loadData()
+})
+
+// Carregar dados do banco
+async function loadData() {
+  try {
+    loading.value = true
+    error.value = ''
+
+    console.log('🔄 Carregando dados da API...')
+
+    // Carregar dados em paralelo
+    const [stats, keys, logs] = await Promise.all([
+      apiManagementService.getAPIMetrics(),
+      apiManagementService.getAPIKeys(),
+      apiManagementService.getAPILogs(50)
+    ])
+
+    apiStats.value = stats
+    apiKeys.value = keys
+    apiLogs.value = logs
+
+    console.log('✅ Dados carregados:', { stats, keys: keys.length, logs: logs.length })
+  } catch (err) {
+    console.error('❌ Erro ao carregar dados:', err)
+    error.value = 'Erro ao carregar dados do banco. Tentando inicializar sistema...'
+
+    // Tentar inicializar se tabelas não existirem
+    try {
+      await apiManagementService.initializeDefaultData()
+      await loadData() // Recarregar após inicializar
+    } catch (initError) {
+      console.error('💥 Erro ao inicializar:', initError)
+      error.value = 'Erro ao inicializar sistema de API: ' + (initError as any)?.message
+    }
+  } finally {
+    loading.value = false
+  }
+}
+
+// Formatar data
+function formatDate(dateStr: string | Date): string {
+  const date = typeof dateStr === 'string' ? new Date(dateStr) : dateStr
   return format(date, 'dd/MM/yyyy HH:mm', { locale: ptBR })
 }
 
-function generateNewKey() {
-  const newKey = {
-    id: Math.max(...apiKeys.value.map(k => k.id)) + 1,
-    name: `Chave API ${new Date().getTime()}`,
-    key: `sk_live_${Math.random().toString(36).substring(2, 30)}`,
-    created_at: new Date(),
-    requests: 0,
-    status: 'active'
+// Gerar nova chave API
+async function generateNewKey() {
+  try {
+    const keyName = prompt('Nome da nova chave API:')
+    if (!keyName) return
+
+    const description = prompt('Descrição (opcional):') || ''
+
+    const newKey = await apiManagementService.createAPIKey({
+      name: keyName,
+      description,
+      permissions: ['read', 'write'],
+      rate_limit: 1000
+    })
+
+    // Atualizar lista local
+    apiKeys.value.unshift(newKey)
+    apiStats.value.totalKeys++
+
+    alert(`✅ Nova chave API criada!
+
+🔑 Nome: ${newKey.name}
+🆔 Chave: ${newKey.key}
+
+A chave foi copiada automaticamente para a área de transferência.`)
+
+    // Copiar chave automaticamente
+    await navigator.clipboard.writeText(newKey.key)
+  } catch (err) {
+    console.error('❌ Erro ao criar chave:', err)
+    alert('Erro ao criar chave API: ' + (err as any)?.message)
   }
-  apiKeys.value.push(newKey)
-  alert('Nova chave API gerada!')
 }
 
-function copyKey(key: any) {
-  navigator.clipboard.writeText(key.key)
-  alert('Chave copiada para a área de transferência!')
+// Copiar chave para clipboard
+async function copyKey(key: APIKey) {
+  try {
+    await navigator.clipboard.writeText(key.key)
+    alert('✅ Chave copiada para a área de transferência!')
+  } catch (err) {
+    console.error('❌ Erro ao copiar:', err)
+    alert('Erro ao copiar chave')
+  }
 }
 
-function toggleKey(key: any) {
-  key.status = key.status === 'active' ? 'inactive' : 'active'
+// Alternar status da chave
+async function toggleKey(key: APIKey) {
+  try {
+    const newStatus = key.status === 'active' ? 'inactive' : 'active'
+    const actionText = newStatus === 'active' ? 'ativar' : 'desativar'
+
+    if (confirm(`Deseja ${actionText} a chave "${key.name}"?`)) {
+      const updatedKey = await apiManagementService.updateAPIKey(key.id, {
+        status: newStatus
+      })
+
+      // Atualizar lista local
+      const index = apiKeys.value.findIndex(k => k.id === key.id)
+      if (index !== -1) {
+        apiKeys.value[index] = updatedKey
+      }
+
+      alert(`✅ Chave ${newStatus === 'active' ? 'ativada' : 'desativada'} com sucesso!`)
+    }
+  } catch (err) {
+    console.error('❌ Erro ao alterar status:', err)
+    alert('Erro ao alterar status da chave: ' + (err as any)?.message)
+  }
 }
 
-function deleteKey(key: any) {
-  if (confirm(`Excluir chave API ${key.name}?`)) {
-    const index = apiKeys.value.findIndex(k => k.id === key.id)
-    if (index !== -1) {
-      apiKeys.value.splice(index, 1)
+// Excluir chave
+async function deleteKey(key: APIKey) {
+  if (confirm(`⚠️ Excluir chave API "${key.name}"?
+
+Esta ação não pode ser desfeita e todas as integrações que usam esta chave deixarão de funcionar.`)) {
+    try {
+      await apiManagementService.deleteAPIKey(key.id)
+
+      // Remover da lista local
+      const index = apiKeys.value.findIndex(k => k.id === key.id)
+      if (index !== -1) {
+        apiKeys.value.splice(index, 1)
+      }
+
+      apiStats.value.totalKeys--
+      alert('✅ Chave excluída com sucesso!')
+    } catch (err) {
+      console.error('❌ Erro ao excluir chave:', err)
+      alert('Erro ao excluir chave: ' + (err as any)?.message)
     }
   }
 }
 
+// Obter classe CSS baseada no status code
 function getStatusClass(status: number): string {
   if (status >= 200 && status < 300) return 'success'
   if (status >= 400 && status < 500) return 'warning'
@@ -454,6 +550,84 @@ function getStatusClass(status: number): string {
 .btn-primary:hover {
   background: var(--theme-primary-hover);
   border-color: var(--theme-primary-hover);
+}
+
+.btn-secondary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 2px solid var(--theme-border);
+  background: var(--theme-surface);
+  color: var(--theme-text-primary);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--theme-background);
+  border-color: var(--theme-primary);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.api-playground-section {
+  background: var(--theme-surface);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 20px var(--theme-shadow);
+  border: 1px solid var(--theme-border);
+}
+
+.api-playground-section h2 {
+  margin: 0 0 1rem 0;
+  color: var(--theme-text-primary);
+  font-size: 1.25rem;
+}
+
+.loading-state, .error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+  gap: 1rem;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--theme-border);
+  border-top: 3px solid var(--theme-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.empty-logs {
+  text-align: center;
+  padding: 2rem;
+  color: var(--theme-text-secondary);
+}
+
+.empty-logs p {
+  margin: 0.5rem 0;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 @media (max-width: 768px) {
