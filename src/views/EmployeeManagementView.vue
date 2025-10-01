@@ -760,8 +760,9 @@ function viewPaymentDetails(payment: DailyPayment) {
   showPaymentDetailsModal.value = true
 }
 
-function editPayment(payment: DailyPayment) {
+function editPayment(_payment: DailyPayment) {
   // TODO: Implement edit payment
+  console.log('Edit payment functionality to be implemented')
 }
 
 function editSalaryConfig(config: SalaryConfig) {

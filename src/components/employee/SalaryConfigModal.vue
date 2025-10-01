@@ -14,11 +14,11 @@
             <option value="mixed">Misto</option>
           </select>
         </div>
-        <div v-if="form.calculation_type === 'fixed' || form.calculation_type === 'mixed'" class="form-group">
+        <div v-if="['fixed', 'mixed'].includes(form.calculation_type)" class="form-group">
           <label>Valor Fixo Diário (R$)</label>
           <input v-model.number="form.fixed_daily_amount" type="number" step="0.01" min="0" class="form-input" />
         </div>
-        <div v-if="form.calculation_type === 'percentage' || form.calculation_type === 'mixed'" class="form-group">
+        <div v-if="['percentage', 'mixed'].includes(form.calculation_type)" class="form-group">
           <label>Taxa Percentual (%)</label>
           <input v-model.number="form.percentage_rate" type="number" step="0.01" min="0" max="100" class="form-input" />
         </div>

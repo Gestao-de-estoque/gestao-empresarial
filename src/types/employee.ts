@@ -140,7 +140,7 @@ export interface PaymentAuditLog {
   action: string
   old_values?: any
   new_values?: any
-  changed_by?: number
+  changed_by?: string // UUID
   ip_address?: string
   user_agent?: string
   created_at?: string

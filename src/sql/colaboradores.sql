@@ -189,7 +189,7 @@ CREATE TABLE IF NOT EXISTS payment_audit_log (
     action VARCHAR(50) NOT NULL,
     old_values JSONB,
     new_values JSONB,
-    changed_by INTEGER REFERENCES admin_users(id),
+    changed_by UUID REFERENCES admin_users(id),
     ip_address INET,
     user_agent TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
