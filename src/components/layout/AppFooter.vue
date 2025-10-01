@@ -103,116 +103,205 @@
           </div>
         </div>
 
-        <!-- Navigation Links -->
+        <!-- Principal -->
         <div class="nav-section">
           <h4 class="section-title">
-            <Navigation :size="20" />
-            Navegação
+            <Home :size="20" />
+            Principal
           </h4>
           <ul class="nav-links">
             <li>
               <router-link to="/dashboard" class="nav-link">
                 <Home :size="16" />
                 <span>Dashboard</span>
-                <ExternalLink :size="12" />
               </router-link>
             </li>
             <li>
               <router-link to="/inventory" class="nav-link">
                 <Package :size="16" />
                 <span>Estoque</span>
-                <ExternalLink :size="12" />
+              </router-link>
+            </li>
+            <li>
+              <router-link to="/ai" class="nav-link">
+                <Zap :size="16" />
+                <span>Análise IA</span>
               </router-link>
             </li>
             <li>
               <router-link to="/reports" class="nav-link">
                 <BarChart3 :size="16" />
                 <span>Relatórios</span>
-                <ExternalLink :size="12" />
               </router-link>
             </li>
             <li>
-              <router-link to="/api" class="nav-link">
-                <Globe :size="16" />
-                <span>API Management</span>
-                <ExternalLink :size="12" />
+              <router-link to="/financial" class="nav-link">
+                <BarChart3 :size="16" />
+                <span>Financeiro</span>
+              </router-link>
+            </li>
+            <li>
+              <router-link to="/employees" class="nav-link">
+                <Users :size="16" />
+                <span>Funcionários</span>
+              </router-link>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Gestão -->
+        <div class="nav-section">
+          <h4 class="section-title">
+            <Navigation :size="20" />
+            Gestão
+          </h4>
+          <ul class="nav-links">
+            <li>
+              <router-link to="/suppliers" class="nav-link">
+                <Users :size="16" />
+                <span>Fornecedores</span>
+              </router-link>
+            </li>
+            <li>
+              <router-link to="/menu" class="nav-link">
+                <BookOpen :size="16" />
+                <span>Menu</span>
+              </router-link>
+            </li>
+            <li>
+              <router-link to="/logs" class="nav-link">
+                <FileText :size="16" />
+                <span>Logs do Sistema</span>
               </router-link>
             </li>
             <li>
               <router-link to="/permissions" class="nav-link">
                 <Shield :size="16" />
                 <span>Permissões</span>
-                <ExternalLink :size="12" />
+              </router-link>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Administração -->
+        <div class="nav-section">
+          <h4 class="section-title">
+            <Shield :size="20" />
+            Administração
+          </h4>
+          <ul class="nav-links">
+            <li>
+              <router-link to="/admin/users" class="nav-link">
+                <Users :size="16" />
+                <span>Usuários</span>
+              </router-link>
+            </li>
+            <li>
+              <router-link to="/admin/audit" class="nav-link">
+                <FileText :size="16" />
+                <span>Auditoria</span>
+              </router-link>
+            </li>
+            <li>
+              <router-link to="/admin/backup" class="nav-link">
+                <Download :size="16" />
+                <span>Backup</span>
+              </router-link>
+            </li>
+            <li>
+              <router-link to="/admin/security" class="nav-link">
+                <Shield :size="16" />
+                <span>Segurança</span>
+              </router-link>
+            </li>
+            <li>
+              <router-link to="/admin/notifications" class="nav-link">
+                <MessageCircle :size="16" />
+                <span>Notificações</span>
+              </router-link>
+            </li>
+            <li>
+              <router-link to="/admin/api" class="nav-link">
+                <Globe :size="16" />
+                <span>API</span>
+              </router-link>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Configurações -->
+        <div class="nav-section">
+          <h4 class="section-title">
+            <Settings :size="20" />
+            Configurações
+          </h4>
+          <ul class="nav-links">
+            <li>
+              <router-link to="/profile" class="nav-link">
+                <User :size="16" />
+                <span>Perfil</span>
+              </router-link>
+            </li>
+            <li>
+              <router-link to="/settings" class="nav-link">
+                <Settings :size="16" />
+                <span>Configurações</span>
               </router-link>
             </li>
             <li>
               <router-link to="/support" class="nav-link">
                 <LifeBuoy :size="16" />
                 <span>Suporte</span>
-                <ExternalLink :size="12" />
+              </router-link>
+            </li>
+            <li>
+              <router-link to="/doc" class="nav-link">
+                <BookOpen :size="16" />
+                <span>Documentação</span>
+              </router-link>
+            </li>
+            <li>
+              <router-link to="/about" class="nav-link">
+                <MessageCircle :size="16" />
+                <span>Sobre</span>
               </router-link>
             </li>
           </ul>
         </div>
 
-        <!-- Resources -->
-        <div class="resources-section">
-          <h4 class="section-title">
-            <BookOpen :size="20" />
-            Recursos
-          </h4>
-          <ul class="resource-links">
-            <li>
-              <a href="/doc" class="resource-link">
-                <FileText :size="16" />
-                <span>Documentação</span>
-              </a>
-            </li>
-            <li>
-              <a href="#" class="resource-link">
-                <Video :size="16" />
-                <span>Video Tutoriais</span>
-              </a>
-            </li>
-            <li>
-              <a href="#" class="resource-link">
-                <Headphones :size="16" />
-                <span>Treinamentos</span>
-              </a>
-            </li>
-            <li>
-              <a href="#" class="resource-link">
-                <Download :size="16" />
-                <span>Downloads</span>
-              </a>
-            </li>
-          </ul>
-        </div>
-
-        <!-- Contact & Social -->
+        <!-- Recursos & Contato -->
         <div class="contact-section">
           <h4 class="section-title">
             <MessageCircle :size="20" />
-            Contato & Suporte
+            Recursos & Contato
           </h4>
-          <div class="contact-info">
-            <div class="contact-item">
-              <Mail :size="16" />
-              <a href="mailto:suporte@gestaozesystem.com">suporte@gestaozesystem.com</a>
-            </div>
-            <div class="contact-item">
-              <Phone :size="16" />
-              <a href="tel:+554800000000">(48) 0000-0000</a>
-            </div>
-            <div class="contact-item">
-              <MapPin :size="16" />
-              <span>Florianópolis - SC, Brasil</span>
-            </div>
-            <div class="contact-item">
-              <Clock :size="16" />
-              <span>Seg - Sex: 8h às 18h</span>
-            </div>
-          </div>
+
+          <ul class="nav-links">
+            <li>
+              <a href="mailto:suporte@gestaozesystem.com" class="nav-link">
+                <Mail :size="16" />
+                <span>suporte@gestaozesystem.com</span>
+              </a>
+            </li>
+            <li>
+              <a href="tel:+554800000000" class="nav-link">
+                <Phone :size="16" />
+                <span>(48) 0000-0000</span>
+              </a>
+            </li>
+            <li>
+              <div class="nav-link inactive">
+                <MapPin :size="16" />
+                <span>Florianópolis - SC</span>
+              </div>
+            </li>
+            <li>
+              <div class="nav-link inactive">
+                <Clock :size="16" />
+                <span>Seg - Sex: 8h às 18h</span>
+              </div>
+            </li>
+          </ul>
 
           <div class="social-section">
             <h5>Siga-nos</h5>
@@ -325,8 +414,8 @@
 <script setup lang="ts">
 import { computed, ref, onMounted } from 'vue'
 import {
-  Smartphone, Package, Zap, Shield, BarChart3, Navigation, Home, ExternalLink,
-  Globe, LifeBuoy, BookOpen, FileText, Video, Headphones, Download,
+  Smartphone, Package, Zap, Shield, BarChart3, Navigation, Home,
+  Globe, LifeBuoy, BookOpen, FileText, Download, Users, Settings, User,
   MessageCircle, Mail, Phone, MapPin, Clock, Linkedin, Github, Instagram,
   Youtube, Heart, X
 } from 'lucide-vue-next'
