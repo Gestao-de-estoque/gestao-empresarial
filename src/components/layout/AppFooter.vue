@@ -85,6 +85,11 @@
               </button>
             </div>
 
+            <!-- Divider -->
+            <div class="download-divider">
+              <span>OU</span>
+            </div>
+
             <!-- QR Code -->
             <div class="qr-section">
               <button @click="downloadViaQR" class="qr-code qr-clickable" title="Clique para expandir o QR Code">
@@ -546,10 +551,11 @@ const siteDescription = (import.meta as any).env?.VITE_APP_DESCRIPTION || 'Plata
 }
 
 .qr-image-small {
-  width: 120px;
-  height: 120px;
+  width: 84px;
+  height: 84px;
   display: block;
   border-radius: 8px;
+  object-fit: contain;
 }
 
 /* Indicador de download */
@@ -564,6 +570,42 @@ const siteDescription = (import.meta as any).env?.VITE_APP_DESCRIPTION || 'Plata
 
 .badge-link:active .badge-icon {
   animation: pulse 0.5s ease-in-out;
+}
+
+/* Download Divider */
+.download-divider {
+  position: relative;
+  text-align: center;
+  margin: 8px 0;
+}
+
+.download-divider::before,
+.download-divider::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: calc(50% - 30px);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.3), transparent);
+}
+
+.download-divider::before {
+  left: 0;
+}
+
+.download-divider::after {
+  right: 0;
+}
+
+.download-divider span {
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 4px 12px;
+  border-radius: 12px;
+  display: inline-block;
+  letter-spacing: 1px;
 }
 
 /* QR Code Modal */
