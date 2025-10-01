@@ -32,5 +32,15 @@ export const DB_TABLES = {
   API_KEYS: 'api_keys',
   API_REQUESTS: 'api_requests',
   API_METRICS: 'api_metrics',
-  SYSTEM_ALERTS: 'system_alerts'
+  SYSTEM_ALERTS: 'system_alerts',
+  // Employee Management Tables
+  EMPLOYEES: 'employees',
+  BANKS: 'banks',
+  EMPLOYEE_BANK_ACCOUNTS: 'employee_bank_accounts',
+  SALARY_CONFIGS: 'salary_configs',
+  DAILY_PAYMENTS: 'daily_payments',
+  DAILY_FINANCIAL_SUMMARY: 'daily_financial_summary',
+  EMPLOYEE_ATTENDANCE: 'employee_attendance',
+  EMPLOYEE_PERFORMANCE_METRICS: 'employee_performance_metrics',
+  PAYMENT_AUDIT_LOG: 'payment_audit_log'
 }

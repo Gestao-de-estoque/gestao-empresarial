@@ -12,6 +12,7 @@ import MenuView from '@/views/MenuView.vue'
 import SettingsView from '@/views/SettingsView.vue'
 import AboutView from '@/views/AboutView.vue'
 import FinancialView from '@/views/FinancialView.vue'
+import EmployeeManagementView from '@/views/EmployeeManagementView.vue'
 import DocumentationView from '@/views/DocumentationView.vue'
 import SupportChatView from '@/views/SupportChatView.vue'
 import UsersView from '@/views/admin/UsersView.vue'
@@ -109,6 +110,12 @@ const router = createRouter({
       path: '/financial',
       name: 'financial',
       component: FinancialView,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/employees',
+      name: 'employees',
+      component: EmployeeManagementView,
       meta: { requiresAuth: true }
     },
     {

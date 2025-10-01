@@ -114,6 +114,17 @@
               <ArrowRight :size="16" class="action-arrow" />
             </router-link>
 
+            <router-link to="/employees" class="quick-action-card employees">
+              <div class="action-icon">
+                <Users :size="24" />
+              </div>
+              <div class="action-content">
+                <h3>Gestão de Funcionários</h3>
+                <p>Administrar equipe e pagamentos</p>
+              </div>
+              <ArrowRight :size="16" class="action-arrow" />
+            </router-link>
+
             <router-link to="/ai" class="quick-action-card ai">
               <div class="action-icon">
                 <Brain :size="24" />
