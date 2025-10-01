@@ -347,7 +347,7 @@ function onLogoError(e: Event) {
 }
 
 // APK Download URL - GitHub Releases
-const apkDownloadUrl = 'https://github.com/estevam5s/gestao-estoque-vue/releases/download/v1.0.0/gestao_estoque.apk'
+const apkDownloadUrl = 'https://github.com/estevam5s/estevam5s/releases/download/v1.0.0/gestao_estoque.apk'
 const apkFileName = 'gestao_estoque.apk'
 
 // Estado do modal do QR Code

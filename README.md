@@ -16,7 +16,7 @@
 ### 🌟 **Demo & Recursos**
 
 [![Demo Live](https://img.shields.io/badge/🚀_Demo_Live-Acessar_Agora-success.svg?style=for-the-badge)](https://gestao.restpedacinhodoceu.com.br)
-[![APK Android](https://img.shields.io/badge/📱_APK_Android-Download-success.svg?style=for-the-badge)](https://github.com/estevam5s/gestao-estoque-vue/releases/download/v1.0.0/gestao_estoque.apk)
+[![APK Android](https://img.shields.io/badge/📱_APK_Android-Download-success.svg?style=for-the-badge)](https://github.com/estevam5s/estevam5s/releases/download/v1.0.0/gestao_estoque.apk)
 [![Documentação](https://img.shields.io/badge/📖_Docs-Ver_Guias-blue.svg?style=for-the-badge)](#-documentação-completa)
 [![Instalação](https://img.shields.io/badge/🛠️_Setup-Guia_Rápido-orange.svg?style=for-the-badge)](#-instalação-e-configuração)
 
@@ -104,7 +104,7 @@ O **GestãoZe System** é uma plataforma empresarial completa de gestão de esto
 
 ### 📱 Aplicativo Android (APK)
 
-**Download**: [gestao_estoque.apk](https://github.com/estevam5s/gestao-estoque-vue/releases/download/v1.0.0/gestao_estoque.apk)
+**Download**: [gestao_estoque.apk](https://github.com/estevam5s/estevam5s/releases/download/v1.0.0/gestao_estoque.apk)
 
 ```
 📧 Email: rebecaluize@gmail.com
@@ -1105,7 +1105,7 @@ const response = await aiService.askQuestion(
 5. Instale o APK no seu dispositivo
 
 #### Via GitHub
-1. Acesse: [GitHub Releases](https://github.com/estevam5s/gestao-estoque-vue/releases/download/v1.0.0/gestao_estoque.apk)
+1. Acesse: [GitHub Releases](https://github.com/estevam5s/estevam5s/releases/download/v1.0.0/gestao_estoque.apk)
 2. Faça o download direto
 3. Instale no dispositivo
 
@@ -1613,7 +1613,7 @@ Agradecimentos especiais às tecnologias que tornaram este projeto possível:
 ### 🔗 Links Rápidos
 
 [🚀 **Acessar Sistema Web**](https://gestao.restpedacinhodoceu.com.br) |
-[📱 **Baixar App Android**](https://github.com/estevam5s/gestao-estoque-vue/releases/download/v1.0.0/gestao_estoque.apk) |
+[📱 **Baixar App Android**](https://github.com/estevam5s/estevam5s/releases/download/v1.0.0/gestao_estoque.apk) |
 [📖 **Documentação**](./doc/README-DOCUMENTACAO.md) |
 [💬 **Suporte**](mailto:suporte@gestaozesystem.com)
 

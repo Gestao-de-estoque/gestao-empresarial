@@ -4,7 +4,7 @@
 
 ### 1. Download do GitHub Releases
 O APK agora é baixado diretamente do GitHub Releases, garantindo sempre a versão mais atualizada:
-- **URL**: `https://github.com/estevam5s/gestao-estoque-vue/releases/download/v1.0.0/gestao_estoque.apk`
+- **URL**: `https://github.com/estevam5s/estevam5s/releases/download/v1.0.0/gestao_estoque.apk`
 - **Nome do arquivo**: `gestao_estoque.apk` (mantém o nome original)
 - **Versão**: v1.0.0
 
@@ -193,7 +193,7 @@ showQRModal.value // deve ser true quando aberto
 ### Download não inicia?
 **URL do GitHub correta?**
 ```javascript
-const apkDownloadUrl = 'https://github.com/estevam5s/gestao-estoque-vue/releases/download/v1.0.0/gestao_estoque.apk'
+const apkDownloadUrl = 'https://github.com/estevam5s/estevam5s/releases/download/v1.0.0/gestao_estoque.apk'
 ```
 
 **Verificar release:**
@@ -304,4 +304,4 @@ const appVersion = '1.0.1'
 **Atualizado em**: 01/10/2025
 **Versão**: 1.0.0
 **Fonte**: GitHub Releases
-**URL**: https://github.com/estevam5s/gestao-estoque-vue/releases/download/v1.0.0/gestao_estoque.apk
+**URL**: https://github.com/estevam5s/estevam5s/releases/download/v1.0.0/gestao_estoque.apk
