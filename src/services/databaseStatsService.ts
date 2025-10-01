@@ -29,6 +29,7 @@ export interface TableStat {
 class DatabaseStatsService {
   private readonly FREE_PLAN_DB_LIMIT = 500 // MB
   private readonly FREE_PLAN_STORAGE_LIMIT = 1000 // MB
+  private tableCategoriesMap: Map<string, string> = new Map()
 
   private getProjectInfo() {
     return {
@@ -95,32 +96,59 @@ class DatabaseStatsService {
    * Obtém estatísticas de cada tabela
    */
   private async getTableStatistics(): Promise<TableStat[]> {
+    // Todas as tabelas do sistema conforme tables.sql
     const tables = [
-      { name: 'admin_users', label: 'Usuários Administrativos' },
-      { name: 'produtos', label: 'Produtos' },
-      { name: 'categorias', label: 'Categorias' },
-      { name: 'movements', label: 'Movimentações de Estoque' },
-      { name: 'menu_items', label: 'Itens do Menu' },
-      { name: 'menu_item_ingredientes', label: 'Ingredientes do Menu' },
-      { name: 'menu_diario', label: 'Planejamento Diário' },
-      { name: 'planejamento_semanal', label: 'Planejamento Semanal' },
-      { name: 'logs', label: 'Logs do Sistema' },
-      { name: 'reports', label: 'Relatórios' },
-      { name: 'suppliers', label: 'Fornecedores' },
-      { name: 'financial_data', label: 'Dados Financeiros' },
-      { name: 'api_keys', label: 'Chaves de API' },
-      { name: 'api_requests', label: 'Requisições de API' },
-      { name: 'api_metrics', label: 'Métricas de API' },
-      { name: 'support_conversations', label: 'Conversas de Suporte' },
-      { name: 'support_messages', label: 'Mensagens de Suporte' },
-      { name: 'support_participants', label: 'Participantes do Suporte' },
-      { name: 'permissions', label: 'Permissões' },
-      { name: 'user_roles', label: 'Funções de Usuário' },
-      { name: 'role_permissions', label: 'Permissões por Função' },
-      { name: 'app_settings', label: 'Configurações do App' }
+      // Autenticação e Usuários
+      { name: 'admin_users', label: 'Usuários Administrativos', category: 'Autenticação' },
+      { name: 'user_roles', label: 'Funções de Usuário', category: 'Autenticação' },
+      { name: 'permissions', label: 'Permissões', category: 'Segurança' },
+      { name: 'role_permissions', label: 'Permissões por Função', category: 'Segurança' },
+
+      // Estoque e Produtos
+      { name: 'produtos', label: 'Produtos', category: 'Estoque' },
+      { name: 'categorias', label: 'Categorias', category: 'Estoque' },
+      { name: 'movements', label: 'Movimentações de Estoque', category: 'Estoque' },
+      { name: 'suppliers', label: 'Fornecedores', category: 'Gestão' },
+
+      // Cardápio e Menu
+      { name: 'menu_items', label: 'Itens do Menu', category: 'Cardápio' },
+      { name: 'menu_item_ingredientes', label: 'Ingredientes do Menu', category: 'Cardápio' },
+      { name: 'menu_diario', label: 'Planejamento Diário', category: 'Cardápio' },
+      { name: 'planejamento_semanal', label: 'Planejamento Semanal', category: 'Cardápio' },
+
+      // Financeiro
+      { name: 'financial_data', label: 'Dados Financeiros', category: 'Financeiro' },
+      { name: 'daily_financial_summary', label: 'Resumo Financeiro Diário', category: 'Financeiro' },
+
+      // Funcionários e Pagamentos
+      { name: 'employees', label: 'Funcionários', category: 'Gestão' },
+      { name: 'banks', label: 'Bancos', category: 'Financeiro' },
+      { name: 'employee_bank_accounts', label: 'Contas Bancárias de Funcionários', category: 'Financeiro' },
+      { name: 'salary_configs', label: 'Configurações de Salário', category: 'Financeiro' },
+      { name: 'daily_payments', label: 'Pagamentos Diários', category: 'Financeiro' },
+      { name: 'employee_attendance', label: 'Presença de Funcionários', category: 'Gestão' },
+      { name: 'employee_performance_metrics', label: 'Métricas de Performance', category: 'Analytics' },
+      { name: 'payment_audit_log', label: 'Auditoria de Pagamentos', category: 'Financeiro' },
+
+      // API e Integrações
+      { name: 'api_keys', label: 'Chaves de API', category: 'API' },
+      { name: 'api_requests', label: 'Requisições de API', category: 'API' },
+      { name: 'api_metrics', label: 'Métricas de API', category: 'API' },
+
+      // Suporte
+      { name: 'support_conversations', label: 'Conversas de Suporte', category: 'Suporte' },
+      { name: 'support_messages', label: 'Mensagens de Suporte', category: 'Suporte' },
+      { name: 'support_participants', label: 'Participantes do Suporte', category: 'Suporte' },
+
+      // Sistema
+      { name: 'logs', label: 'Logs do Sistema', category: 'Sistema' },
+      { name: 'reports', label: 'Relatórios', category: 'Analytics' },
+      { name: 'app_settings', label: 'Configurações do App', category: 'Sistema' },
+      { name: 'system_alerts', label: 'Alertas do Sistema', category: 'Sistema' }
     ]
 
     const tableStats: TableStat[] = []
+    const tableCategories = new Map<string, string>()
 
     for (const table of tables) {
       try {
@@ -145,10 +173,16 @@ class DatabaseStatsService {
           lastUpdated: new Date().toISOString()
         })
 
+        // Armazenar categoria para uso posterior
+        tableCategories.set(table.label, table.category)
+
       } catch (error) {
         console.warn(`Erro ao processar tabela ${table.name}:`, error)
       }
     }
+
+    // Armazenar map de categorias para uso no getAllTablesInfo
+    this.tableCategoriesMap = tableCategories
 
     return tableStats.sort((a, b) => b.rowCount - a.rowCount)
   }
@@ -388,32 +422,8 @@ class DatabaseStatsService {
    * Categorizar tabelas por função
    */
   private getCategoryByTable(tableName: string): string {
-    const categories: { [key: string]: string } = {
-      'Usuários Administrativos': 'Autenticação',
-      'Produtos': 'Estoque',
-      'Categorias': 'Estoque',
-      'Movimentações de Estoque': 'Estoque',
-      'Itens do Menu': 'Cardápio',
-      'Ingredientes do Menu': 'Cardápio',
-      'Planejamento Diário': 'Cardápio',
-      'Planejamento Semanal': 'Cardápio',
-      'Logs do Sistema': 'Sistema',
-      'Relatórios': 'Analytics',
-      'Fornecedores': 'Gestão',
-      'Dados Financeiros': 'Financeiro',
-      'Chaves de API': 'API',
-      'Requisições de API': 'API',
-      'Métricas de API': 'API',
-      'Conversas de Suporte': 'Suporte',
-      'Mensagens de Suporte': 'Suporte',
-      'Participantes do Suporte': 'Suporte',
-      'Permissões': 'Segurança',
-      'Funções de Usuário': 'Segurança',
-      'Permissões por Função': 'Segurança',
-      'Configurações do App': 'Sistema'
-    }
-
-    return categories[tableName] || 'Outros'
+    // Usar o mapa de categorias armazenado durante getTableStatistics
+    return this.tableCategoriesMap.get(tableName) || 'Sistema'
   }
 
   /**

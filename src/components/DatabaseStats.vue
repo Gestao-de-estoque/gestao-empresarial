@@ -3,18 +3,23 @@
     <!-- Card Principal -->
     <div class="panel database-panel">
       <div class="panel-header">
-        <h2>
-          <svg class="supabase-icon" width="22" height="22" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <defs>
-              <linearGradient id="sbG" x1="0" x2="1" y1="0" y2="1">
-                <stop offset="0%" stop-color="#3ECF8E"/>
-                <stop offset="100%" stop-color="#2EB67D"/>
-              </linearGradient>
-            </defs>
-            <path fill="url(#sbG)" d="M153.1 16c-5.5 0-10.8 2.5-14.2 6.8L48.8 132.7c-9 11-1 27.3 13.1 27.3h64.6l-23.6 79.1c-4.9 16.4 16.3 27.2 27.2 14.2l118.8-140.6c9.2-10.9 1.3-27.5-12.8-27.5h-67.5l22-53.2c4.4-10.6-3.4-22-13.6-22z"/>
-          </svg>
-          Banco de Dados
-        </h2>
+        <div class="header-left">
+          <h2>
+            <svg class="supabase-icon" :class="{ 'pulse': isLoading }" width="22" height="22" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <defs>
+                <linearGradient id="sbG" x1="0" x2="1" y1="0" y2="1">
+                  <stop offset="0%" stop-color="#3ECF8E"/>
+                  <stop offset="100%" stop-color="#2EB67D"/>
+                </linearGradient>
+              </defs>
+              <path fill="url(#sbG)" d="M153.1 16c-5.5 0-10.8 2.5-14.2 6.8L48.8 132.7c-9 11-1 27.3 13.1 27.3h64.6l-23.6 79.1c-4.9 16.4 16.3 27.2 27.2 14.2l118.8-140.6c9.2-10.9 1.3-27.5-12.8-27.5h-67.5l22-53.2c4.4-10.6-3.4-22-13.6-22z"/>
+            </svg>
+            Banco de Dados
+          </h2>
+          <span class="last-updated">
+            Atualizado: {{ formatTimeAgo(lastUpdated) }}
+          </span>
+        </div>
         <div class="status-indicator" :class="getStatusClass()">
           <component :is="getStatusIcon()" :size="14" />
           {{ getStatusText() }}
@@ -334,7 +339,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import {
   Database, HardDrive, Image, Lightbulb, Info, Gauge,
   ChevronDown, ChevronUp, X, Table2, Loader2, RefreshCw,
@@ -344,6 +349,8 @@ import {
 } from 'lucide-vue-next'
 import { databaseStatsService, type DatabaseStats } from '@/services/databaseStatsService'
 import DatabaseAlert from './DatabaseAlert.vue'
+import { formatDistanceToNow } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 
 // Estados reativos
 const stats = ref<DatabaseStats | null>(null)
@@ -480,6 +487,10 @@ function viewTableDetails(table: any) {
   // Aqui você pode implementar um modal ou navegar para uma página de detalhes
 }
 
+function formatTimeAgo(date: Date): string {
+  return formatDistanceToNow(date, { addSuffix: true, locale: ptBR })
+}
+
 async function refreshStats() {
   await loadStats()
 }
@@ -518,6 +529,9 @@ async function loadStats() {
       totalTables: tables.summary.totalTables
     })
 
+    // Atualizar data da última atualização
+    lastUpdated.value = new Date()
+
   } catch (err: any) {
     console.error('❌ Erro:', err)
     error.value = true
@@ -526,12 +540,27 @@ async function loadStats() {
   }
 }
 
+// Auto-refresh ref
+const autoRefreshInterval = ref<number | null>(null)
+const lastUpdated = ref<Date>(new Date())
+
 // Lifecycle
 onMounted(() => {
   loadStats()
 
-  // Auto-refresh a cada 5 minutos
-  setInterval(loadStats, 5 * 60 * 1000)
+  // Auto-refresh a cada 30 segundos para dados em tempo real
+  autoRefreshInterval.value = window.setInterval(() => {
+    if (!isLoading.value) {
+      console.log('🔄 Auto-refresh das estatísticas do banco...')
+      loadStats()
+    }
+  }, 30 * 1000) // 30 segundos
+})
+
+onUnmounted(() => {
+  if (autoRefreshInterval.value) {
+    clearInterval(autoRefreshInterval.value)
+  }
 })
 </script>
 
@@ -558,6 +587,12 @@ onMounted(() => {
   margin-bottom: 24px;
 }
 
+.header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
 .panel-header h2 {
   display: flex;
   align-items: center;
@@ -566,6 +601,29 @@ onMounted(() => {
   font-size: 20px;
   font-weight: 700;
   color: var(--theme-text-primary, #1a202c);
+}
+
+.last-updated {
+  font-size: 12px;
+  color: var(--theme-text-secondary, #64748b);
+  font-weight: 500;
+  padding-left: 34px;
+  opacity: 0.8;
+}
+
+.supabase-icon.pulse {
+  animation: iconPulse 2s ease-in-out infinite;
+}
+
+@keyframes iconPulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.05);
+  }
 }
 
 .status-indicator {

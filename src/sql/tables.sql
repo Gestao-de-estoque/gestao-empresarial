@@ -73,11 +73,14 @@ CREATE TABLE public.app_settings (
   updated_at timestamp with time zone DEFAULT now(),
   CONSTRAINT app_settings_pkey PRIMARY KEY (id)
 );
-CREATE TABLE public.bd_ativo (
-  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
-  created_at timestamp with time zone NOT NULL DEFAULT now(),
-  num bigint,
-  CONSTRAINT bd_ativo_pkey PRIMARY KEY (id)
+CREATE TABLE public.banks (
+  id integer NOT NULL DEFAULT nextval('banks_id_seq'::regclass),
+  code character varying NOT NULL UNIQUE,
+  name character varying NOT NULL,
+  icon_url text,
+  color character varying,
+  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT banks_pkey PRIMARY KEY (id)
 );
 CREATE TABLE public.categorias (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -87,6 +90,102 @@ CREATE TABLE public.categorias (
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
   CONSTRAINT categorias_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.daily_financial_summary (
+  id integer NOT NULL DEFAULT nextval('daily_financial_summary_id_seq'::regclass),
+  summary_date date NOT NULL UNIQUE,
+  total_revenue numeric NOT NULL,
+  total_employee_payments numeric NOT NULL,
+  total_garcom_percentage numeric NOT NULL,
+  num_active_employees integer NOT NULL DEFAULT 0,
+  num_garcom_on_duty integer NOT NULL DEFAULT 0,
+  calculation_details jsonb,
+  synced_with_financial_data boolean DEFAULT false,
+  financial_data_id integer,
+  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT daily_financial_summary_pkey PRIMARY KEY (id),
+  CONSTRAINT daily_financial_summary_financial_data_id_fkey FOREIGN KEY (financial_data_id) REFERENCES public.financial_data(id)
+);
+CREATE TABLE public.daily_payments (
+  id integer NOT NULL DEFAULT nextval('daily_payments_id_seq'::regclass),
+  employee_id integer NOT NULL,
+  payment_date date NOT NULL,
+  daily_revenue numeric NOT NULL DEFAULT 0.00,
+  base_salary numeric NOT NULL,
+  bonus numeric DEFAULT 0.00,
+  deductions numeric DEFAULT 0.00,
+  final_amount numeric NOT NULL,
+  calculation_details jsonb,
+  payment_status character varying NOT NULL DEFAULT 'pendente'::character varying CHECK (payment_status::text = ANY (ARRAY['pendente'::character varying, 'processando'::character varying, 'pago'::character varying, 'cancelado'::character varying]::text[])),
+  payment_method character varying CHECK (payment_method::text = ANY (ARRAY['pix'::character varying, 'transferencia'::character varying, 'dinheiro'::character varying, 'cheque'::character varying]::text[])),
+  paid_at timestamp with time zone,
+  notes text,
+  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT daily_payments_pkey PRIMARY KEY (id),
+  CONSTRAINT daily_payments_employee_id_fkey FOREIGN KEY (employee_id) REFERENCES public.employees(id)
+);
+CREATE TABLE public.employee_attendance (
+  id integer NOT NULL DEFAULT nextval('employee_attendance_id_seq'::regclass),
+  employee_id integer NOT NULL,
+  attendance_date date NOT NULL,
+  check_in time without time zone,
+  check_out time without time zone,
+  hours_worked numeric,
+  status character varying NOT NULL DEFAULT 'presente'::character varying CHECK (status::text = ANY (ARRAY['presente'::character varying, 'ausente'::character varying, 'falta'::character varying, 'ferias'::character varying, 'folga'::character varying, 'atestado'::character varying]::text[])),
+  notes text,
+  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT employee_attendance_pkey PRIMARY KEY (id),
+  CONSTRAINT employee_attendance_employee_id_fkey FOREIGN KEY (employee_id) REFERENCES public.employees(id)
+);
+CREATE TABLE public.employee_bank_accounts (
+  id integer NOT NULL DEFAULT nextval('employee_bank_accounts_id_seq'::regclass),
+  employee_id integer NOT NULL,
+  bank_id integer NOT NULL,
+  account_type character varying NOT NULL CHECK (account_type::text = ANY (ARRAY['corrente'::character varying, 'poupanca'::character varying, 'salario'::character varying]::text[])),
+  agency character varying NOT NULL,
+  account_number character varying NOT NULL,
+  account_digit character varying,
+  pix_key_type character varying CHECK (pix_key_type::text = ANY (ARRAY['cpf'::character varying, 'email'::character varying, 'telefone'::character varying, 'chave_aleatoria'::character varying, 'qrcode'::character varying]::text[])),
+  pix_key character varying,
+  qr_code_pix text,
+  is_primary boolean DEFAULT true,
+  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT employee_bank_accounts_pkey PRIMARY KEY (id),
+  CONSTRAINT employee_bank_accounts_employee_id_fkey FOREIGN KEY (employee_id) REFERENCES public.employees(id),
+  CONSTRAINT employee_bank_accounts_bank_id_fkey FOREIGN KEY (bank_id) REFERENCES public.banks(id)
+);
+CREATE TABLE public.employee_performance_metrics (
+  id integer NOT NULL DEFAULT nextval('employee_performance_metrics_id_seq'::regclass),
+  employee_id integer NOT NULL,
+  metric_date date NOT NULL,
+  total_earnings numeric DEFAULT 0.00,
+  days_worked integer DEFAULT 0,
+  average_daily_earnings numeric DEFAULT 0.00,
+  total_bonus numeric DEFAULT 0.00,
+  total_deductions numeric DEFAULT 0.00,
+  performance_score numeric,
+  metrics_details jsonb,
+  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT employee_performance_metrics_pkey PRIMARY KEY (id),
+  CONSTRAINT employee_performance_metrics_employee_id_fkey FOREIGN KEY (employee_id) REFERENCES public.employees(id)
+);
+CREATE TABLE public.employees (
+  id integer NOT NULL DEFAULT nextval('employees_id_seq'::regclass),
+  name character varying NOT NULL,
+  email character varying NOT NULL UNIQUE,
+  phone character varying,
+  photo_url text,
+  position character varying NOT NULL CHECK ("position"::text = ANY (ARRAY['garcom'::character varying, 'balconista'::character varying, 'barmen'::character varying, 'cozinheiro'::character varying, 'cozinheiro_chef'::character varying]::text[])),
+  hire_date date NOT NULL DEFAULT CURRENT_DATE,
+  status character varying NOT NULL DEFAULT 'ativo'::character varying CHECK (status::text = ANY (ARRAY['ativo'::character varying, 'inativo'::character varying, 'ferias'::character varying, 'afastado'::character varying]::text[])),
+  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT employees_pkey PRIMARY KEY (id)
 );
 CREATE TABLE public.financial_data (
   id bigint NOT NULL DEFAULT nextval('financial_data_id_seq'::regclass),
@@ -194,6 +293,22 @@ CREATE TABLE public.movements (
   CONSTRAINT movements_product_id_fkey FOREIGN KEY (product_id) REFERENCES public.produtos(id),
   CONSTRAINT movements_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.admin_users(id)
 );
+CREATE TABLE public.payment_audit_log (
+  id integer NOT NULL DEFAULT nextval('payment_audit_log_id_seq'::regclass),
+  payment_id integer,
+  employee_id integer NOT NULL,
+  action character varying NOT NULL,
+  old_values jsonb,
+  new_values jsonb,
+  changed_by uuid,
+  ip_address inet,
+  user_agent text,
+  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT payment_audit_log_pkey PRIMARY KEY (id),
+  CONSTRAINT payment_audit_log_payment_id_fkey FOREIGN KEY (payment_id) REFERENCES public.daily_payments(id),
+  CONSTRAINT payment_audit_log_employee_id_fkey FOREIGN KEY (employee_id) REFERENCES public.employees(id),
+  CONSTRAINT payment_audit_log_changed_by_fkey FOREIGN KEY (changed_by) REFERENCES public.admin_users(id)
+);
 CREATE TABLE public.permissions (
   id character varying NOT NULL,
   name character varying NOT NULL,
@@ -258,6 +373,20 @@ CREATE TABLE public.role_permissions (
   CONSTRAINT role_permissions_role_id_fkey FOREIGN KEY (role_id) REFERENCES public.user_roles(id),
   CONSTRAINT role_permissions_permission_id_fkey FOREIGN KEY (permission_id) REFERENCES public.permissions(id)
 );
+CREATE TABLE public.salary_configs (
+  id integer NOT NULL DEFAULT nextval('salary_configs_id_seq'::regclass),
+  position character varying NOT NULL UNIQUE CHECK ("position"::text = ANY (ARRAY['garcom'::character varying, 'balconista'::character varying, 'barmen'::character varying, 'cozinheiro'::character varying, 'cozinheiro_chef'::character varying]::text[])),
+  calculation_type character varying NOT NULL CHECK (calculation_type::text = ANY (ARRAY['percentage'::character varying, 'fixed'::character varying, 'mixed'::character varying]::text[])),
+  fixed_daily_amount numeric DEFAULT 0.00,
+  percentage_rate numeric DEFAULT 0.00,
+  min_daily_guarantee numeric DEFAULT 0.00,
+  max_daily_limit numeric,
+  description text,
+  active boolean DEFAULT true,
+  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT salary_configs_pkey PRIMARY KEY (id)
+);
 CREATE TABLE public.suppliers (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
   name character varying NOT NULL,
@@ -298,6 +427,27 @@ CREATE TABLE public.support_participants (
   created_at timestamp with time zone DEFAULT now(),
   CONSTRAINT support_participants_pkey PRIMARY KEY (id),
   CONSTRAINT support_participants_conversation_id_fkey FOREIGN KEY (conversation_id) REFERENCES public.support_conversations(id)
+);
+CREATE TABLE public.system_alerts (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  type character varying NOT NULL CHECK (type::text = ANY (ARRAY['critical'::character varying, 'warning'::character varying, 'info'::character varying, 'success'::character varying]::text[])),
+  category character varying NOT NULL,
+  title character varying NOT NULL,
+  description text NOT NULL,
+  details text,
+  icon character varying NOT NULL,
+  resolved boolean NOT NULL DEFAULT false,
+  resolved_at timestamp with time zone,
+  auto_generated boolean NOT NULL DEFAULT true,
+  priority integer NOT NULL DEFAULT 1,
+  affected_entity character varying,
+  entity_id character varying,
+  action_required boolean DEFAULT false,
+  suggested_actions jsonb,
+  metadata jsonb,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT system_alerts_pkey PRIMARY KEY (id)
 );
 CREATE TABLE public.user_roles (
   id character varying NOT NULL,
