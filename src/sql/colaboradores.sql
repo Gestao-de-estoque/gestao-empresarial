@@ -258,8 +258,12 @@ CREATE TRIGGER trigger_salary_configs_updated_at
     FOR EACH ROW
     EXECUTE FUNCTION update_salary_configs_updated_at();
 
--- Trigger para sincronização com financial_data
-CREATE OR REPLACE FUNCTION sync_daily_financial_summary()
+-- =====================================================
+-- TRIGGERS DE SINCRONIZAÇÃO BIDIRECIONAL
+-- =====================================================
+
+-- Trigger 1: Sincroniza daily_financial_summary -> financial_data
+CREATE OR REPLACE FUNCTION sync_daily_financial_summary_to_financial()
 RETURNS TRIGGER AS $$
 BEGIN
     -- Atualiza ou cria registro em financial_data
@@ -281,10 +285,168 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_sync_daily_financial_summary
+CREATE TRIGGER trigger_sync_summary_to_financial
     AFTER INSERT OR UPDATE ON daily_financial_summary
     FOR EACH ROW
-    EXECUTE FUNCTION sync_daily_financial_summary();
+    EXECUTE FUNCTION sync_daily_financial_summary_to_financial();
+
+-- Trigger 2: Sincroniza financial_data -> Calcula pagamentos automaticamente
+CREATE OR REPLACE FUNCTION sync_financial_to_employee_payments()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_date DATE;
+    v_employee RECORD;
+    v_config RECORD;
+    v_base_salary DECIMAL(10, 2);
+    v_garcom_count INTEGER;
+    v_garcom_total DECIMAL(10, 2);
+BEGIN
+    -- Converte DD/MM/YYYY para DATE
+    v_date := TO_DATE(NEW.full_day, 'DD/MM/YYYY');
+
+    -- Conta quantos garçons ativos existem
+    SELECT COUNT(*) INTO v_garcom_count
+    FROM employees
+    WHERE position = 'garcom' AND status = 'ativo';
+
+    IF v_garcom_count = 0 THEN
+        v_garcom_count := 1; -- Evita divisão por zero
+    END IF;
+
+    -- Calcula o total para garçons (10% dividido)
+    v_garcom_total := (NEW.total * 0.10) / v_garcom_count;
+
+    -- Para cada funcionário ativo, cria ou atualiza o pagamento
+    FOR v_employee IN
+        SELECT e.*, sc.calculation_type, sc.fixed_daily_amount,
+               sc.percentage_rate, sc.min_daily_guarantee, sc.max_daily_limit
+        FROM employees e
+        LEFT JOIN salary_configs sc ON e.position = sc.position
+        WHERE e.status = 'ativo'
+    LOOP
+        -- Calcula o salário base conforme a configuração
+        IF v_employee.calculation_type = 'fixed' THEN
+            v_base_salary := v_employee.fixed_daily_amount;
+
+        ELSIF v_employee.calculation_type = 'percentage' THEN
+            IF v_employee.position = 'garcom' THEN
+                v_base_salary := v_garcom_total;
+            ELSE
+                v_base_salary := NEW.total * (v_employee.percentage_rate / 100);
+            END IF;
+
+            -- Aplica garantia mínima
+            IF v_base_salary < v_employee.min_daily_guarantee THEN
+                v_base_salary := v_employee.min_daily_guarantee;
+            END IF;
+
+        ELSIF v_employee.calculation_type = 'mixed' THEN
+            v_base_salary := GREATEST(
+                v_employee.fixed_daily_amount,
+                NEW.total * (v_employee.percentage_rate / 100)
+            );
+        ELSE
+            v_base_salary := 0;
+        END IF;
+
+        -- Aplica limite máximo se configurado
+        IF v_employee.max_daily_limit IS NOT NULL AND v_base_salary > v_employee.max_daily_limit THEN
+            v_base_salary := v_employee.max_daily_limit;
+        END IF;
+
+        -- Insere ou atualiza o pagamento
+        INSERT INTO daily_payments (
+            employee_id,
+            payment_date,
+            daily_revenue,
+            base_salary,
+            bonus,
+            deductions,
+            final_amount,
+            calculation_details,
+            payment_status,
+            created_at,
+            updated_at
+        ) VALUES (
+            v_employee.id,
+            v_date,
+            NEW.total,
+            v_base_salary,
+            0,
+            0,
+            v_base_salary,
+            jsonb_build_object(
+                'position', v_employee.position,
+                'calculation_type', v_employee.calculation_type,
+                'daily_revenue', NEW.total,
+                'garcom_count', v_garcom_count,
+                'auto_calculated', true,
+                'source', 'financial_data'
+            ),
+            'pendente',
+            CURRENT_TIMESTAMP,
+            CURRENT_TIMESTAMP
+        )
+        ON CONFLICT (employee_id, payment_date)
+        DO UPDATE SET
+            daily_revenue = EXCLUDED.daily_revenue,
+            base_salary = EXCLUDED.base_salary,
+            final_amount = EXCLUDED.final_amount,
+            calculation_details = EXCLUDED.calculation_details,
+            updated_at = CURRENT_TIMESTAMP;
+    END LOOP;
+
+    -- Atualiza ou cria o resumo diário
+    INSERT INTO daily_financial_summary (
+        summary_date,
+        total_revenue,
+        total_employee_payments,
+        total_garcom_percentage,
+        num_active_employees,
+        num_garcom_on_duty,
+        calculation_details,
+        synced_with_financial_data,
+        financial_data_id,
+        created_at,
+        updated_at
+    )
+    SELECT
+        v_date,
+        NEW.total,
+        COALESCE(SUM(dp.final_amount), 0),
+        NEW.amount,
+        (SELECT COUNT(*) FROM employees WHERE status = 'ativo'),
+        v_garcom_count,
+        jsonb_build_object(
+            'auto_synced', true,
+            'source', 'financial_data',
+            'synced_at', CURRENT_TIMESTAMP
+        ),
+        true,
+        NEW.id,
+        CURRENT_TIMESTAMP,
+        CURRENT_TIMESTAMP
+    FROM daily_payments dp
+    WHERE dp.payment_date = v_date
+    ON CONFLICT (summary_date)
+    DO UPDATE SET
+        total_revenue = EXCLUDED.total_revenue,
+        total_employee_payments = EXCLUDED.total_employee_payments,
+        total_garcom_percentage = EXCLUDED.total_garcom_percentage,
+        num_active_employees = EXCLUDED.num_active_employees,
+        num_garcom_on_duty = EXCLUDED.num_garcom_on_duty,
+        synced_with_financial_data = true,
+        financial_data_id = NEW.id,
+        updated_at = CURRENT_TIMESTAMP;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_sync_financial_to_payments
+    AFTER INSERT OR UPDATE ON financial_data
+    FOR EACH ROW
+    EXECUTE FUNCTION sync_financial_to_employee_payments();
 
 -- Views úteis para relatórios
 

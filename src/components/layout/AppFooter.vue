@@ -60,8 +60,9 @@
               <button @click="downloadAPK" class="badge-link google-play" aria-label="Baixar APK Android">
                 <div class="badge-content">
                   <div class="badge-icon">
-                    <svg viewBox="0 0 24 24">
-                      <path d="../../../app/gestao_estoque.apk"/>
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M17.523 7L12 2.5 6.477 7H17.523zM6.477 17L12 21.5l5.523-4.5H6.477zM12 2C10.9 2 10 2.9 10 4v16c0 1.1.9 2 2 2s2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
+                      <circle cx="12" cy="12" r="1.5"/>
                     </svg>
                   </div>
                   <div class="badge-text">
@@ -286,14 +287,27 @@ function onLogoError(e: Event) {
 }
 
 // APK Download URL - Arquivo local do aplicativo
-const apkDownloadUrl = '/gestao_estoque.apk'
+const apkDownloadUrl = '/app/gestao_estoque.apk'
 const apkFileName = 'GestaoZe_v' + appVersion + '.apk'
 
 // URLs das lojas (opcional, mantém para futuro)
 
-// Função para download direto do APK
-function downloadAPK() {
+// Função para download direto do APK com notificação
+async function downloadAPK() {
   try {
+    console.log('📱 Iniciando download do APK:', apkFileName)
+    console.log('📂 URL:', apkDownloadUrl)
+
+    // Verificar se o arquivo existe antes de baixar
+    const response = await fetch(apkDownloadUrl, { method: 'HEAD' })
+
+    if (!response.ok) {
+      throw new Error(`APK não encontrado (${response.status})`)
+    }
+
+    // Mostrar notificação de sucesso
+    showNotification('📥 Download iniciado!', 'O arquivo APK será baixado em instantes...', 'success')
+
     // Criar elemento de link temporário para download
     const link = document.createElement('a')
     link.href = apkDownloadUrl
@@ -303,19 +317,78 @@ function downloadAPK() {
     // Adicionar ao DOM, clicar e remover
     document.body.appendChild(link)
     link.click()
-    document.body.removeChild(link)
 
-    console.log('📱 Download do APK iniciado:', apkFileName)
+    // Aguardar um pouco antes de remover para garantir o download
+    setTimeout(() => {
+      document.body.removeChild(link)
+    }, 1000)
+
+    console.log('✅ Download do APK iniciado com sucesso')
+
   } catch (error) {
     console.error('❌ Erro ao baixar APK:', error)
+
+    // Mostrar notificação de erro
+    showNotification(
+      '⚠️ Erro no download',
+      'Tentando método alternativo...',
+      'warning'
+    )
+
     // Fallback: abrir em nova aba
-    window.open(apkDownloadUrl, '_blank')
+    setTimeout(() => {
+      window.open(apkDownloadUrl, '_blank')
+    }, 500)
   }
 }
 
 // Função para download via QR Code
 function downloadViaQR() {
+  showNotification('📱 QR Code', 'Iniciando download do aplicativo...', 'info')
   downloadAPK()
+}
+
+// Função auxiliar para mostrar notificações
+function showNotification(title: string, message: string, type: 'success' | 'error' | 'warning' | 'info' = 'info') {
+  // Criar elemento de notificação
+  const notification = document.createElement('div')
+  notification.className = `app-notification ${type}`
+  notification.innerHTML = `
+    <div class="notification-content">
+      <strong>${title}</strong>
+      <p>${message}</p>
+    </div>
+  `
+
+  // Adicionar estilos inline
+  Object.assign(notification.style, {
+    position: 'fixed',
+    bottom: '20px',
+    right: '20px',
+    backgroundColor: type === 'success' ? '#10b981' :
+                     type === 'error' ? '#ef4444' :
+                     type === 'warning' ? '#f59e0b' : '#3b82f6',
+    color: 'white',
+    padding: '16px 24px',
+    borderRadius: '12px',
+    boxShadow: '0 10px 25px rgba(0, 0, 0, 0.2)',
+    zIndex: '99999',
+    maxWidth: '350px',
+    animation: 'slideInRight 0.3s ease-out',
+    fontSize: '14px',
+    fontFamily: 'system-ui, -apple-system, sans-serif'
+  })
+
+  // Adicionar ao body
+  document.body.appendChild(notification)
+
+  // Remover após 4 segundos
+  setTimeout(() => {
+    notification.style.animation = 'slideOutRight 0.3s ease-out'
+    setTimeout(() => {
+      document.body.removeChild(notification)
+    }, 300)
+  }, 4000)
 }
 
 
@@ -325,3 +398,86 @@ const siteDescription = (import.meta as any).env?.VITE_APP_DESCRIPTION || 'Plata
 </script>
 
 <style scoped src="@/styles/footer.css"></style>
+
+<style scoped>
+/* Animações para notificações */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+/* Melhorias nos botões de download */
+.badge-link {
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.badge-link::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.badge-link:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.badge-link:active {
+  transform: scale(0.95);
+}
+
+.qr-clickable {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.qr-clickable:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.qr-clickable:active {
+  transform: scale(0.98);
+}
+
+/* Indicador de download */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.badge-link:active .badge-icon {
+  animation: pulse 0.5s ease-in-out;
+}
+</style>
