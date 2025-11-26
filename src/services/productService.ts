@@ -1,5 +1,6 @@
 import { supabase, DB_TABLES } from '@/config/supabase'
 import type { Product } from '@/types/product'
+import { normalizeUUID, formatSupabaseError, requireValidUUID, validateAndNormalizeUUIDs } from '@/utils/validation'
 
 export class ProductService {
   async getProducts(): Promise<Product[]> {
@@ -20,13 +21,18 @@ export class ProductService {
 
   async getProductById(id: string): Promise<Product | null> {
     try {
+      requireValidUUID(id, 'ID do produto')
+
       const { data, error } = await supabase
         .from(DB_TABLES.PRODUCTS)
         .select('*')
         .eq('id', id)
         .single()
 
-      if (error) throw error
+      if (error) {
+        console.error('Erro ao buscar produto:', error)
+        throw new Error(formatSupabaseError(error))
+      }
       return data
     } catch (error) {
       console.error('Erro ao buscar produto:', error)
@@ -36,10 +42,13 @@ export class ProductService {
 
   async createProduct(productData: Partial<Product>): Promise<Product> {
     try {
+      // Normaliza UUIDs antes de enviar
+      const normalized = validateAndNormalizeUUIDs(productData, ['categoria_id'])
+
       const { data, error } = await supabase
         .from(DB_TABLES.PRODUCTS)
         .insert([{
-          ...productData,
+          ...normalized,
           ativo: true,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
@@ -47,7 +56,10 @@ export class ProductService {
         .select()
         .single()
 
-      if (error) throw error
+      if (error) {
+        console.error('Erro ao criar produto:', error)
+        throw new Error(formatSupabaseError(error))
+      }
       return data
     } catch (error) {
       console.error('Erro ao criar produto:', error)
@@ -57,17 +69,25 @@ export class ProductService {
 
   async updateProduct(id: string, productData: Partial<Product>): Promise<Product> {
     try {
+      requireValidUUID(id, 'ID do produto')
+
+      // Normaliza UUIDs antes de enviar
+      const normalized = validateAndNormalizeUUIDs(productData, ['categoria_id'])
+
       const { data, error } = await supabase
         .from(DB_TABLES.PRODUCTS)
         .update({
-          ...productData,
+          ...normalized,
           updated_at: new Date().toISOString()
         })
         .eq('id', id)
         .select()
         .single()
 
-      if (error) throw error
+      if (error) {
+        console.error('Erro ao atualizar produto:', error)
+        throw new Error(formatSupabaseError(error))
+      }
       return data
     } catch (error) {
       console.error('Erro ao atualizar produto:', error)
@@ -77,12 +97,17 @@ export class ProductService {
 
   async deleteProduct(id: string): Promise<void> {
     try {
+      requireValidUUID(id, 'ID do produto')
+
       const { error } = await supabase
         .from(DB_TABLES.PRODUCTS)
         .update({ ativo: false, updated_at: new Date().toISOString() })
         .eq('id', id)
 
-      if (error) throw error
+      if (error) {
+        console.error('Erro ao excluir produto:', error)
+        throw new Error(formatSupabaseError(error))
+      }
     } catch (error) {
       console.error('Erro ao excluir produto:', error)
       throw error
@@ -115,6 +140,8 @@ export class ProductService {
 
   async getProductsByCategory(categoryId: string): Promise<Product[]> {
     try {
+      requireValidUUID(categoryId, 'ID da categoria')
+
       const { data, error } = await supabase
         .from(DB_TABLES.PRODUCTS)
         .select('*')
@@ -122,7 +149,10 @@ export class ProductService {
         .eq('ativo', true)
         .order('nome')
 
-      if (error) throw error
+      if (error) {
+        console.error('Erro ao buscar produtos por categoria:', error)
+        throw new Error(formatSupabaseError(error))
+      }
       return data || []
     } catch (error) {
       console.error('Erro ao buscar produtos por categoria:', error)

@@ -21,7 +21,9 @@ CREATE TABLE public.admin_users (
   avatar_url text,
   login_count integer DEFAULT 0,
   last_login_at timestamp with time zone,
-  CONSTRAINT admin_users_pkey PRIMARY KEY (id)
+  tenant_id uuid,
+  CONSTRAINT admin_users_pkey PRIMARY KEY (id),
+  CONSTRAINT admin_users_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)
 );
 CREATE TABLE public.api_keys (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -36,7 +38,9 @@ CREATE TABLE public.api_keys (
   rate_limit integer DEFAULT 1000,
   allowed_origins jsonb DEFAULT '[]'::jsonb,
   permissions jsonb DEFAULT '["read"]'::jsonb,
-  CONSTRAINT api_keys_pkey PRIMARY KEY (id)
+  tenant_id uuid,
+  CONSTRAINT api_keys_pkey PRIMARY KEY (id),
+  CONSTRAINT api_keys_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)
 );
 CREATE TABLE public.api_metrics (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -46,8 +50,10 @@ CREATE TABLE public.api_metrics (
   error_count integer DEFAULT 0,
   avg_response_time integer DEFAULT 0,
   created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  tenant_id uuid,
   CONSTRAINT api_metrics_pkey PRIMARY KEY (id),
-  CONSTRAINT api_metrics_api_key_id_fkey FOREIGN KEY (api_key_id) REFERENCES public.api_keys(id)
+  CONSTRAINT api_metrics_api_key_id_fkey FOREIGN KEY (api_key_id) REFERENCES public.api_keys(id),
+  CONSTRAINT api_metrics_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)
 );
 CREATE TABLE public.api_requests (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -61,8 +67,10 @@ CREATE TABLE public.api_requests (
   request_body jsonb,
   response_body jsonb,
   created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  tenant_id uuid,
   CONSTRAINT api_requests_pkey PRIMARY KEY (id),
-  CONSTRAINT api_requests_api_key_id_fkey FOREIGN KEY (api_key_id) REFERENCES public.api_keys(id)
+  CONSTRAINT api_requests_api_key_id_fkey FOREIGN KEY (api_key_id) REFERENCES public.api_keys(id),
+  CONSTRAINT api_requests_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)
 );
 CREATE TABLE public.app_settings (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -71,7 +79,9 @@ CREATE TABLE public.app_settings (
   settings jsonb NOT NULL,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
-  CONSTRAINT app_settings_pkey PRIMARY KEY (id)
+  tenant_id uuid,
+  CONSTRAINT app_settings_pkey PRIMARY KEY (id),
+  CONSTRAINT app_settings_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)
 );
 CREATE TABLE public.banks (
   id integer NOT NULL DEFAULT nextval('banks_id_seq'::regclass),
@@ -114,12 +124,14 @@ CREATE TABLE public.blog_posts (
 );
 CREATE TABLE public.categorias (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
-  nome character varying NOT NULL UNIQUE,
+  nome character varying NOT NULL,
   icone character varying DEFAULT '📦'::character varying,
   ativo boolean DEFAULT true,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
-  CONSTRAINT categorias_pkey PRIMARY KEY (id)
+  tenant_id uuid NOT NULL,
+  CONSTRAINT categorias_pkey PRIMARY KEY (id),
+  CONSTRAINT categorias_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)
 );
 CREATE TABLE public.contact_messages (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -143,7 +155,7 @@ CREATE TABLE public.contact_messages (
 );
 CREATE TABLE public.daily_financial_summary (
   id integer NOT NULL DEFAULT nextval('daily_financial_summary_id_seq'::regclass),
-  summary_date date NOT NULL UNIQUE,
+  summary_date date NOT NULL,
   total_revenue numeric NOT NULL,
   total_employee_payments numeric NOT NULL,
   total_garcom_percentage numeric NOT NULL,
@@ -154,8 +166,10 @@ CREATE TABLE public.daily_financial_summary (
   financial_data_id integer,
   created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
   updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  tenant_id uuid,
   CONSTRAINT daily_financial_summary_pkey PRIMARY KEY (id),
-  CONSTRAINT daily_financial_summary_financial_data_id_fkey FOREIGN KEY (financial_data_id) REFERENCES public.financial_data(id)
+  CONSTRAINT daily_financial_summary_financial_data_id_fkey FOREIGN KEY (financial_data_id) REFERENCES public.financial_data(id),
+  CONSTRAINT daily_financial_summary_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)
 );
 CREATE TABLE public.daily_payments (
   id integer NOT NULL DEFAULT nextval('daily_payments_id_seq'::regclass),
@@ -173,8 +187,10 @@ CREATE TABLE public.daily_payments (
   notes text,
   created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
   updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  tenant_id uuid,
   CONSTRAINT daily_payments_pkey PRIMARY KEY (id),
-  CONSTRAINT daily_payments_employee_id_fkey FOREIGN KEY (employee_id) REFERENCES public.employees(id)
+  CONSTRAINT daily_payments_employee_id_fkey FOREIGN KEY (employee_id) REFERENCES public.employees(id),
+  CONSTRAINT daily_payments_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)
 );
 CREATE TABLE public.employee_attendance (
   id integer NOT NULL DEFAULT nextval('employee_attendance_id_seq'::regclass),
@@ -187,8 +203,10 @@ CREATE TABLE public.employee_attendance (
   notes text,
   created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
   updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  tenant_id uuid,
   CONSTRAINT employee_attendance_pkey PRIMARY KEY (id),
-  CONSTRAINT employee_attendance_employee_id_fkey FOREIGN KEY (employee_id) REFERENCES public.employees(id)
+  CONSTRAINT employee_attendance_employee_id_fkey FOREIGN KEY (employee_id) REFERENCES public.employees(id),
+  CONSTRAINT employee_attendance_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)
 );
 CREATE TABLE public.employee_bank_accounts (
   id integer NOT NULL DEFAULT nextval('employee_bank_accounts_id_seq'::regclass),
@@ -204,9 +222,11 @@ CREATE TABLE public.employee_bank_accounts (
   is_primary boolean DEFAULT true,
   created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
   updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  tenant_id uuid,
   CONSTRAINT employee_bank_accounts_pkey PRIMARY KEY (id),
   CONSTRAINT employee_bank_accounts_employee_id_fkey FOREIGN KEY (employee_id) REFERENCES public.employees(id),
-  CONSTRAINT employee_bank_accounts_bank_id_fkey FOREIGN KEY (bank_id) REFERENCES public.banks(id)
+  CONSTRAINT employee_bank_accounts_bank_id_fkey FOREIGN KEY (bank_id) REFERENCES public.banks(id),
+  CONSTRAINT employee_bank_accounts_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)
 );
 CREATE TABLE public.employee_performance_metrics (
   id integer NOT NULL DEFAULT nextval('employee_performance_metrics_id_seq'::regclass),
@@ -221,8 +241,10 @@ CREATE TABLE public.employee_performance_metrics (
   metrics_details jsonb,
   created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
   updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  tenant_id uuid,
   CONSTRAINT employee_performance_metrics_pkey PRIMARY KEY (id),
-  CONSTRAINT employee_performance_metrics_employee_id_fkey FOREIGN KEY (employee_id) REFERENCES public.employees(id)
+  CONSTRAINT employee_performance_metrics_employee_id_fkey FOREIGN KEY (employee_id) REFERENCES public.employees(id),
+  CONSTRAINT employee_performance_metrics_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)
 );
 CREATE TABLE public.employees (
   id integer NOT NULL DEFAULT nextval('employees_id_seq'::regclass),
@@ -235,7 +257,9 @@ CREATE TABLE public.employees (
   status character varying NOT NULL DEFAULT 'ativo'::character varying CHECK (status::text = ANY (ARRAY['ativo'::character varying, 'inativo'::character varying, 'ferias'::character varying, 'afastado'::character varying]::text[])),
   created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
   updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT employees_pkey PRIMARY KEY (id)
+  tenant_id uuid NOT NULL,
+  CONSTRAINT employees_pkey PRIMARY KEY (id),
+  CONSTRAINT employees_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)
 );
 CREATE TABLE public.faq_items (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -258,7 +282,9 @@ CREATE TABLE public.financial_data (
   total numeric NOT NULL,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
-  CONSTRAINT financial_data_pkey PRIMARY KEY (id)
+  tenant_id uuid NOT NULL,
+  CONSTRAINT financial_data_pkey PRIMARY KEY (id),
+  CONSTRAINT financial_data_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)
 );
 CREATE TABLE public.leads (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -305,8 +331,10 @@ CREATE TABLE public.logs (
   status text DEFAULT 'success'::text,
   error_message text,
   updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  tenant_id uuid,
   CONSTRAINT logs_pkey PRIMARY KEY (id),
-  CONSTRAINT logs_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.admin_users(id)
+  CONSTRAINT logs_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.admin_users(id),
+  CONSTRAINT logs_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)
 );
 CREATE TABLE public.menu_diario (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -319,9 +347,11 @@ CREATE TABLE public.menu_diario (
   status character varying DEFAULT 'planejado'::character varying CHECK (status::text = ANY (ARRAY['planejado'::character varying::text, 'preparando'::character varying::text, 'pronto'::character varying::text, 'cancelado'::character varying::text])),
   observacoes text,
   created_at timestamp with time zone DEFAULT now(),
+  tenant_id uuid,
   CONSTRAINT menu_diario_pkey PRIMARY KEY (id),
   CONSTRAINT menu_diario_planejamento_semanal_id_fkey FOREIGN KEY (planejamento_semanal_id) REFERENCES public.planejamento_semanal(id),
-  CONSTRAINT menu_diario_menu_item_id_fkey FOREIGN KEY (menu_item_id) REFERENCES public.menu_items(id)
+  CONSTRAINT menu_diario_menu_item_id_fkey FOREIGN KEY (menu_item_id) REFERENCES public.menu_items(id),
+  CONSTRAINT menu_diario_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)
 );
 CREATE TABLE public.menu_item_ingredientes (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -332,9 +362,11 @@ CREATE TABLE public.menu_item_ingredientes (
   opcional boolean DEFAULT false,
   observacoes text,
   created_at timestamp with time zone DEFAULT now(),
+  tenant_id uuid,
   CONSTRAINT menu_item_ingredientes_pkey PRIMARY KEY (id),
   CONSTRAINT menu_item_ingredientes_menu_item_id_fkey FOREIGN KEY (menu_item_id) REFERENCES public.menu_items(id),
-  CONSTRAINT menu_item_ingredientes_produto_id_fkey FOREIGN KEY (produto_id) REFERENCES public.produtos(id)
+  CONSTRAINT menu_item_ingredientes_produto_id_fkey FOREIGN KEY (produto_id) REFERENCES public.produtos(id),
+  CONSTRAINT menu_item_ingredientes_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)
 );
 CREATE TABLE public.menu_items (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -358,9 +390,11 @@ CREATE TABLE public.menu_items (
   ativo boolean DEFAULT true,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
+  tenant_id uuid NOT NULL,
   CONSTRAINT menu_items_pkey PRIMARY KEY (id),
   CONSTRAINT menu_items_categoria_id_fkey FOREIGN KEY (categoria_id) REFERENCES public.categorias(id),
-  CONSTRAINT menu_items_criado_por_fkey FOREIGN KEY (criado_por) REFERENCES public.admin_users(id)
+  CONSTRAINT menu_items_criado_por_fkey FOREIGN KEY (criado_por) REFERENCES public.admin_users(id),
+  CONSTRAINT menu_items_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)
 );
 CREATE TABLE public.movements (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -376,9 +410,11 @@ CREATE TABLE public.movements (
   invoice_number character varying,
   created_by uuid,
   created_at timestamp with time zone DEFAULT now(),
+  tenant_id uuid NOT NULL,
   CONSTRAINT movements_pkey PRIMARY KEY (id),
   CONSTRAINT movements_product_id_fkey FOREIGN KEY (product_id) REFERENCES public.produtos(id),
-  CONSTRAINT movements_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.admin_users(id)
+  CONSTRAINT movements_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.admin_users(id),
+  CONSTRAINT movements_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)
 );
 CREATE TABLE public.payment_audit_log (
   id integer NOT NULL DEFAULT nextval('payment_audit_log_id_seq'::regclass),
@@ -391,10 +427,12 @@ CREATE TABLE public.payment_audit_log (
   ip_address inet,
   user_agent text,
   created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  tenant_id uuid,
   CONSTRAINT payment_audit_log_pkey PRIMARY KEY (id),
   CONSTRAINT payment_audit_log_payment_id_fkey FOREIGN KEY (payment_id) REFERENCES public.daily_payments(id),
   CONSTRAINT payment_audit_log_employee_id_fkey FOREIGN KEY (employee_id) REFERENCES public.employees(id),
-  CONSTRAINT payment_audit_log_changed_by_fkey FOREIGN KEY (changed_by) REFERENCES public.admin_users(id)
+  CONSTRAINT payment_audit_log_changed_by_fkey FOREIGN KEY (changed_by) REFERENCES public.admin_users(id),
+  CONSTRAINT payment_audit_log_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)
 );
 CREATE TABLE public.permissions (
   id character varying NOT NULL,
@@ -414,8 +452,10 @@ CREATE TABLE public.planejamento_semanal (
   criado_por uuid,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
+  tenant_id uuid,
   CONSTRAINT planejamento_semanal_pkey PRIMARY KEY (id),
-  CONSTRAINT planejamento_semanal_criado_por_fkey FOREIGN KEY (criado_por) REFERENCES public.admin_users(id)
+  CONSTRAINT planejamento_semanal_criado_por_fkey FOREIGN KEY (criado_por) REFERENCES public.admin_users(id),
+  CONSTRAINT planejamento_semanal_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)
 );
 CREATE TABLE public.produtos (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -435,9 +475,11 @@ CREATE TABLE public.produtos (
   created_by uuid,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
+  tenant_id uuid NOT NULL,
   CONSTRAINT produtos_pkey PRIMARY KEY (id),
   CONSTRAINT produtos_categoria_id_fkey FOREIGN KEY (categoria_id) REFERENCES public.categorias(id),
-  CONSTRAINT produtos_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.admin_users(id)
+  CONSTRAINT produtos_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.admin_users(id),
+  CONSTRAINT produtos_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)
 );
 CREATE TABLE public.reports (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -447,8 +489,10 @@ CREATE TABLE public.reports (
   data jsonb,
   generated_by uuid,
   created_at timestamp with time zone DEFAULT now(),
+  tenant_id uuid NOT NULL,
   CONSTRAINT reports_pkey PRIMARY KEY (id),
-  CONSTRAINT reports_generated_by_fkey FOREIGN KEY (generated_by) REFERENCES public.admin_users(id)
+  CONSTRAINT reports_generated_by_fkey FOREIGN KEY (generated_by) REFERENCES public.admin_users(id),
+  CONSTRAINT reports_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)
 );
 CREATE TABLE public.role_permissions (
   role_id character varying NOT NULL,
@@ -462,7 +506,7 @@ CREATE TABLE public.role_permissions (
 );
 CREATE TABLE public.salary_configs (
   id integer NOT NULL DEFAULT nextval('salary_configs_id_seq'::regclass),
-  position character varying NOT NULL UNIQUE CHECK ("position"::text = ANY (ARRAY['garcom'::character varying, 'balconista'::character varying, 'barmen'::character varying, 'cozinheiro'::character varying, 'cozinheiro_chef'::character varying]::text[])),
+  position character varying NOT NULL CHECK ("position"::text = ANY (ARRAY['garcom'::character varying, 'balconista'::character varying, 'barmen'::character varying, 'cozinheiro'::character varying, 'cozinheiro_chef'::character varying]::text[])),
   calculation_type character varying NOT NULL CHECK (calculation_type::text = ANY (ARRAY['percentage'::character varying, 'fixed'::character varying, 'mixed'::character varying]::text[])),
   fixed_daily_amount numeric DEFAULT 0.00,
   percentage_rate numeric DEFAULT 0.00,
@@ -472,7 +516,9 @@ CREATE TABLE public.salary_configs (
   active boolean DEFAULT true,
   created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
   updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT salary_configs_pkey PRIMARY KEY (id)
+  tenant_id uuid,
+  CONSTRAINT salary_configs_pkey PRIMARY KEY (id),
+  CONSTRAINT salary_configs_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)
 );
 CREATE TABLE public.subscription_history (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -530,14 +576,18 @@ CREATE TABLE public.suppliers (
   products_count integer DEFAULT 0,
   created_at timestamp with time zone DEFAULT timezone('utc'::text, now()),
   updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()),
-  CONSTRAINT suppliers_pkey PRIMARY KEY (id)
+  tenant_id uuid NOT NULL,
+  CONSTRAINT suppliers_pkey PRIMARY KEY (id),
+  CONSTRAINT suppliers_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)
 );
 CREATE TABLE public.support_conversations (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   subject text NOT NULL,
   status text NOT NULL DEFAULT 'open'::text CHECK (status = ANY (ARRAY['open'::text, 'closed'::text])),
   created_at timestamp with time zone DEFAULT now(),
-  CONSTRAINT support_conversations_pkey PRIMARY KEY (id)
+  tenant_id uuid,
+  CONSTRAINT support_conversations_pkey PRIMARY KEY (id),
+  CONSTRAINT support_conversations_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)
 );
 CREATE TABLE public.support_messages (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -546,8 +596,10 @@ CREATE TABLE public.support_messages (
   sender_role text NOT NULL CHECK (sender_role = ANY (ARRAY['admin'::text, 'support'::text])),
   content text NOT NULL,
   created_at timestamp with time zone DEFAULT now(),
+  tenant_id uuid,
   CONSTRAINT support_messages_pkey PRIMARY KEY (id),
-  CONSTRAINT support_messages_conversation_id_fkey FOREIGN KEY (conversation_id) REFERENCES public.support_conversations(id)
+  CONSTRAINT support_messages_conversation_id_fkey FOREIGN KEY (conversation_id) REFERENCES public.support_conversations(id),
+  CONSTRAINT support_messages_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)
 );
 CREATE TABLE public.support_participants (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -577,7 +629,9 @@ CREATE TABLE public.system_alerts (
   metadata jsonb,
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   updated_at timestamp with time zone NOT NULL DEFAULT now(),
-  CONSTRAINT system_alerts_pkey PRIMARY KEY (id)
+  tenant_id uuid,
+  CONSTRAINT system_alerts_pkey PRIMARY KEY (id),
+  CONSTRAINT system_alerts_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)
 );
 CREATE TABLE public.tenant_invitations (
   id uuid NOT NULL DEFAULT gen_random_uuid(),

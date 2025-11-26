@@ -1,0 +1,666 @@
+[
+  {
+    "schema": "cron",
+    "table": "job",
+    "policy": "cron_job_policy",
+    "command": "*",
+    "using": "(username = CURRENT_USER)",
+    "with_check": null
+  },
+  {
+    "schema": "cron",
+    "table": "job_run_details",
+    "policy": "cron_job_run_details_policy",
+    "command": "*",
+    "using": "(username = CURRENT_USER)",
+    "with_check": null
+  },
+  {
+    "schema": "public",
+    "table": "app_settings",
+    "policy": "app_settings_update_strict",
+    "command": "w",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": "(tenant_id = current_user_tenant_id())"
+  },
+  {
+    "schema": "public",
+    "table": "app_settings",
+    "policy": "app_settings_delete_strict",
+    "command": "d",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": null
+  },
+  {
+    "schema": "public",
+    "table": "app_settings",
+    "policy": "app_settings_insert_strict",
+    "command": "a",
+    "using": null,
+    "with_check": "(tenant_id = current_user_tenant_id())"
+  },
+  {
+    "schema": "public",
+    "table": "app_settings",
+    "policy": "app_settings_select_strict",
+    "command": "r",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": null
+  },
+  {
+    "schema": "public",
+    "table": "categorias",
+    "policy": "categorias_update_strict",
+    "command": "w",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": "(tenant_id = current_user_tenant_id())"
+  },
+  {
+    "schema": "public",
+    "table": "categorias",
+    "policy": "categorias_select_strict",
+    "command": "r",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": null
+  },
+  {
+    "schema": "public",
+    "table": "categorias",
+    "policy": "categorias_insert_strict",
+    "command": "a",
+    "using": null,
+    "with_check": "(tenant_id = current_user_tenant_id())"
+  },
+  {
+    "schema": "public",
+    "table": "categorias",
+    "policy": "categorias_delete_strict",
+    "command": "d",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": null
+  },
+  {
+    "schema": "public",
+    "table": "daily_financial_summary",
+    "policy": "daily_financial_summary_update_strict",
+    "command": "w",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": "(tenant_id = current_user_tenant_id())"
+  },
+  {
+    "schema": "public",
+    "table": "daily_financial_summary",
+    "policy": "daily_financial_summary_delete_strict",
+    "command": "d",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": null
+  },
+  {
+    "schema": "public",
+    "table": "daily_financial_summary",
+    "policy": "daily_financial_summary_select_strict",
+    "command": "r",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": null
+  },
+  {
+    "schema": "public",
+    "table": "daily_financial_summary",
+    "policy": "daily_financial_summary_insert_strict",
+    "command": "a",
+    "using": null,
+    "with_check": "(tenant_id = current_user_tenant_id())"
+  },
+  {
+    "schema": "public",
+    "table": "daily_payments",
+    "policy": "daily_payments_delete_strict",
+    "command": "d",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": null
+  },
+  {
+    "schema": "public",
+    "table": "daily_payments",
+    "policy": "daily_payments_update_strict",
+    "command": "w",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": "(tenant_id = current_user_tenant_id())"
+  },
+  {
+    "schema": "public",
+    "table": "daily_payments",
+    "policy": "daily_payments_insert_strict",
+    "command": "a",
+    "using": null,
+    "with_check": "(tenant_id = current_user_tenant_id())"
+  },
+  {
+    "schema": "public",
+    "table": "daily_payments",
+    "policy": "daily_payments_select_strict",
+    "command": "r",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": null
+  },
+  {
+    "schema": "public",
+    "table": "employee_attendance",
+    "policy": "employee_attendance_select_strict",
+    "command": "r",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": null
+  },
+  {
+    "schema": "public",
+    "table": "employee_attendance",
+    "policy": "employee_attendance_insert_strict",
+    "command": "a",
+    "using": null,
+    "with_check": "(tenant_id = current_user_tenant_id())"
+  },
+  {
+    "schema": "public",
+    "table": "employee_attendance",
+    "policy": "employee_attendance_delete_strict",
+    "command": "d",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": null
+  },
+  {
+    "schema": "public",
+    "table": "employee_attendance",
+    "policy": "employee_attendance_update_strict",
+    "command": "w",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": "(tenant_id = current_user_tenant_id())"
+  },
+  {
+    "schema": "public",
+    "table": "employee_bank_accounts",
+    "policy": "employee_bank_accounts_insert_strict",
+    "command": "a",
+    "using": null,
+    "with_check": "(tenant_id = current_user_tenant_id())"
+  },
+  {
+    "schema": "public",
+    "table": "employee_bank_accounts",
+    "policy": "employee_bank_accounts_delete_strict",
+    "command": "d",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": null
+  },
+  {
+    "schema": "public",
+    "table": "employee_bank_accounts",
+    "policy": "employee_bank_accounts_update_strict",
+    "command": "w",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": "(tenant_id = current_user_tenant_id())"
+  },
+  {
+    "schema": "public",
+    "table": "employee_bank_accounts",
+    "policy": "employee_bank_accounts_select_strict",
+    "command": "r",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": null
+  },
+  {
+    "schema": "public",
+    "table": "employee_performance_metrics",
+    "policy": "employee_performance_metrics_delete_strict",
+    "command": "d",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": null
+  },
+  {
+    "schema": "public",
+    "table": "employee_performance_metrics",
+    "policy": "employee_performance_metrics_select_strict",
+    "command": "r",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": null
+  },
+  {
+    "schema": "public",
+    "table": "employee_performance_metrics",
+    "policy": "employee_performance_metrics_insert_strict",
+    "command": "a",
+    "using": null,
+    "with_check": "(tenant_id = current_user_tenant_id())"
+  },
+  {
+    "schema": "public",
+    "table": "employee_performance_metrics",
+    "policy": "employee_performance_metrics_update_strict",
+    "command": "w",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": "(tenant_id = current_user_tenant_id())"
+  },
+  {
+    "schema": "public",
+    "table": "employees",
+    "policy": "employees_delete_strict",
+    "command": "d",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": null
+  },
+  {
+    "schema": "public",
+    "table": "employees",
+    "policy": "employees_select_strict",
+    "command": "r",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": null
+  },
+  {
+    "schema": "public",
+    "table": "employees",
+    "policy": "employees_insert_strict",
+    "command": "a",
+    "using": null,
+    "with_check": "(tenant_id = current_user_tenant_id())"
+  },
+  {
+    "schema": "public",
+    "table": "employees",
+    "policy": "employees_update_strict",
+    "command": "w",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": "(tenant_id = current_user_tenant_id())"
+  },
+  {
+    "schema": "public",
+    "table": "financial_data",
+    "policy": "financial_data_delete_strict",
+    "command": "d",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": null
+  },
+  {
+    "schema": "public",
+    "table": "financial_data",
+    "policy": "financial_data_select_strict",
+    "command": "r",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": null
+  },
+  {
+    "schema": "public",
+    "table": "financial_data",
+    "policy": "financial_data_insert_strict",
+    "command": "a",
+    "using": null,
+    "with_check": "(tenant_id = current_user_tenant_id())"
+  },
+  {
+    "schema": "public",
+    "table": "financial_data",
+    "policy": "financial_data_update_strict",
+    "command": "w",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": "(tenant_id = current_user_tenant_id())"
+  },
+  {
+    "schema": "public",
+    "table": "menu_diario",
+    "policy": "menu_diario_delete_strict",
+    "command": "d",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": null
+  },
+  {
+    "schema": "public",
+    "table": "menu_diario",
+    "policy": "menu_diario_select_strict",
+    "command": "r",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": null
+  },
+  {
+    "schema": "public",
+    "table": "menu_diario",
+    "policy": "menu_diario_update_strict",
+    "command": "w",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": "(tenant_id = current_user_tenant_id())"
+  },
+  {
+    "schema": "public",
+    "table": "menu_diario",
+    "policy": "menu_diario_insert_strict",
+    "command": "a",
+    "using": null,
+    "with_check": "(tenant_id = current_user_tenant_id())"
+  },
+  {
+    "schema": "public",
+    "table": "menu_item_ingredientes",
+    "policy": "menu_item_ingredientes_delete_strict",
+    "command": "d",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": null
+  },
+  {
+    "schema": "public",
+    "table": "menu_item_ingredientes",
+    "policy": "menu_item_ingredientes_select_strict",
+    "command": "r",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": null
+  },
+  {
+    "schema": "public",
+    "table": "menu_item_ingredientes",
+    "policy": "menu_item_ingredientes_insert_strict",
+    "command": "a",
+    "using": null,
+    "with_check": "(tenant_id = current_user_tenant_id())"
+  },
+  {
+    "schema": "public",
+    "table": "menu_item_ingredientes",
+    "policy": "menu_item_ingredientes_update_strict",
+    "command": "w",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": "(tenant_id = current_user_tenant_id())"
+  },
+  {
+    "schema": "public",
+    "table": "menu_items",
+    "policy": "menu_items_update_strict",
+    "command": "w",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": "(tenant_id = current_user_tenant_id())"
+  },
+  {
+    "schema": "public",
+    "table": "menu_items",
+    "policy": "menu_items_delete_strict",
+    "command": "d",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": null
+  },
+  {
+    "schema": "public",
+    "table": "menu_items",
+    "policy": "menu_items_select_strict",
+    "command": "r",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": null
+  },
+  {
+    "schema": "public",
+    "table": "menu_items",
+    "policy": "menu_items_insert_strict",
+    "command": "a",
+    "using": null,
+    "with_check": "(tenant_id = current_user_tenant_id())"
+  },
+  {
+    "schema": "public",
+    "table": "movements",
+    "policy": "movements_update_strict",
+    "command": "w",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": "(tenant_id = current_user_tenant_id())"
+  },
+  {
+    "schema": "public",
+    "table": "movements",
+    "policy": "movements_delete_strict",
+    "command": "d",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": null
+  },
+  {
+    "schema": "public",
+    "table": "movements",
+    "policy": "movements_select_strict",
+    "command": "r",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": null
+  },
+  {
+    "schema": "public",
+    "table": "movements",
+    "policy": "movements_insert_strict",
+    "command": "a",
+    "using": null,
+    "with_check": "(tenant_id = current_user_tenant_id())"
+  },
+  {
+    "schema": "public",
+    "table": "payment_audit_log",
+    "policy": "payment_audit_log_delete_strict",
+    "command": "d",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": null
+  },
+  {
+    "schema": "public",
+    "table": "payment_audit_log",
+    "policy": "payment_audit_log_update_strict",
+    "command": "w",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": "(tenant_id = current_user_tenant_id())"
+  },
+  {
+    "schema": "public",
+    "table": "payment_audit_log",
+    "policy": "payment_audit_log_insert_strict",
+    "command": "a",
+    "using": null,
+    "with_check": "(tenant_id = current_user_tenant_id())"
+  },
+  {
+    "schema": "public",
+    "table": "payment_audit_log",
+    "policy": "payment_audit_log_select_strict",
+    "command": "r",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": null
+  },
+  {
+    "schema": "public",
+    "table": "planejamento_semanal",
+    "policy": "planejamento_semanal_delete_strict",
+    "command": "d",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": null
+  },
+  {
+    "schema": "public",
+    "table": "planejamento_semanal",
+    "policy": "planejamento_semanal_update_strict",
+    "command": "w",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": "(tenant_id = current_user_tenant_id())"
+  },
+  {
+    "schema": "public",
+    "table": "planejamento_semanal",
+    "policy": "planejamento_semanal_insert_strict",
+    "command": "a",
+    "using": null,
+    "with_check": "(tenant_id = current_user_tenant_id())"
+  },
+  {
+    "schema": "public",
+    "table": "planejamento_semanal",
+    "policy": "planejamento_semanal_select_strict",
+    "command": "r",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": null
+  },
+  {
+    "schema": "public",
+    "table": "produtos",
+    "policy": "produtos_select_strict",
+    "command": "r",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": null
+  },
+  {
+    "schema": "public",
+    "table": "produtos",
+    "policy": "produtos_insert_strict",
+    "command": "a",
+    "using": null,
+    "with_check": "(tenant_id = current_user_tenant_id())"
+  },
+  {
+    "schema": "public",
+    "table": "produtos",
+    "policy": "produtos_update_strict",
+    "command": "w",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": "(tenant_id = current_user_tenant_id())"
+  },
+  {
+    "schema": "public",
+    "table": "produtos",
+    "policy": "produtos_delete_strict",
+    "command": "d",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": null
+  },
+  {
+    "schema": "public",
+    "table": "reports",
+    "policy": "reports_insert_strict",
+    "command": "a",
+    "using": null,
+    "with_check": "(tenant_id = current_user_tenant_id())"
+  },
+  {
+    "schema": "public",
+    "table": "reports",
+    "policy": "reports_update_strict",
+    "command": "w",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": "(tenant_id = current_user_tenant_id())"
+  },
+  {
+    "schema": "public",
+    "table": "reports",
+    "policy": "reports_delete_strict",
+    "command": "d",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": null
+  },
+  {
+    "schema": "public",
+    "table": "reports",
+    "policy": "reports_select_strict",
+    "command": "r",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": null
+  },
+  {
+    "schema": "public",
+    "table": "salary_configs",
+    "policy": "salary_configs_delete_strict",
+    "command": "d",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": null
+  },
+  {
+    "schema": "public",
+    "table": "salary_configs",
+    "policy": "salary_configs_update_strict",
+    "command": "w",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": "(tenant_id = current_user_tenant_id())"
+  },
+  {
+    "schema": "public",
+    "table": "salary_configs",
+    "policy": "salary_configs_insert_strict",
+    "command": "a",
+    "using": null,
+    "with_check": "(tenant_id = current_user_tenant_id())"
+  },
+  {
+    "schema": "public",
+    "table": "salary_configs",
+    "policy": "salary_configs_select_strict",
+    "command": "r",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": null
+  },
+  {
+    "schema": "public",
+    "table": "suppliers",
+    "policy": "suppliers_select_strict",
+    "command": "r",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": null
+  },
+  {
+    "schema": "public",
+    "table": "suppliers",
+    "policy": "suppliers_insert_strict",
+    "command": "a",
+    "using": null,
+    "with_check": "(tenant_id = current_user_tenant_id())"
+  },
+  {
+    "schema": "public",
+    "table": "suppliers",
+    "policy": "suppliers_update_strict",
+    "command": "w",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": "(tenant_id = current_user_tenant_id())"
+  },
+  {
+    "schema": "public",
+    "table": "suppliers",
+    "policy": "suppliers_delete_strict",
+    "command": "d",
+    "using": "(tenant_id = current_user_tenant_id())",
+    "with_check": null
+  },
+  {
+    "schema": "storage",
+    "table": "objects",
+    "policy": "Users can update their own avatars",
+    "command": "w",
+    "using": "((bucket_id = 'user-avatars'::text) AND ((auth.uid())::text = (storage.foldername(name))[1]))",
+    "with_check": null
+  },
+  {
+    "schema": "storage",
+    "table": "objects",
+    "policy": "Anyone can view avatars",
+    "command": "r",
+    "using": "(bucket_id = 'user-avatars'::text)",
+    "with_check": null
+  },
+  {
+    "schema": "storage",
+    "table": "objects",
+    "policy": "Users can delete their own avatars",
+    "command": "d",
+    "using": "(bucket_id = 'user-avatars'::text)",
+    "with_check": null
+  },
+  {
+    "schema": "storage",
+    "table": "objects",
+    "policy": "Public can view avatars",
+    "command": "r",
+    "using": "(bucket_id = 'user-avatars'::text)",
+    "with_check": null
+  },
+  {
+    "schema": "storage",
+    "table": "objects",
+    "policy": "Users can upload their own avatars",
+    "command": "a",
+    "using": null,
+    "with_check": "(bucket_id = 'user-avatars'::text)"
+  }
+]
