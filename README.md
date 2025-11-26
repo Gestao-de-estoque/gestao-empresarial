@@ -1,5 +1,6 @@
 # 🏪 GestãoZe System - Sistema Completo de Gestão de Estoque
 
+
 <div align="center">
 
 [![Vue.js](https://img.shields.io/badge/Vue.js-3.5.21-4FC08D.svg?style=for-the-badge&logo=vue.js&logoColor=white)](https://vuejs.org/)
